@@ -1,169 +1,98 @@
 # QPilot Architecture and Foldering
 
-> Status: reflects the current implementation in `src/`.
+> Status: reflects the current UI-first implementation in `src/`.
 
 ## 1. Purpose
 
-QPilot is a client-only React SPA for creating, annotating, and publishing SIT test evidence. The browser is the application runtime. There is no custom backend, application database server, proxy, server session, or background synchronization service.
+QPilot is a React SPA for creating and reviewing SIT test evidence. The current phase is UI/UX development only. All five modules use local React state, realistic mock data, client-side validation, and simulated async behavior. Backend, authentication, database, and external service work are intentionally deferred until UI approval.
 
-## 2. Runtime Architecture
-
-```text
-Static HTTPS host
-  -> React + Vite SPA
-      -> localStorage: optional PAT credentials and preferences
-      -> IndexedDB via Dexie: suites, steps, screenshots, annotations
-      -> direct fetch: Jira REST API v3
-      -> direct fetch: Confluence REST API v2
-```
-
-The static host serves the application bundle only. Credentials and test artifacts must never be sent to an application-owned host.
-
-## 3. Source Foldering
+## 2. Source Foldering
 
 ```text
 src/
-  app/
-    # Planned boundary; current route/session shell is implemented in App.tsx.
   components/
-    auth/
-      # Planned extraction; current setup views are in App.tsx.
-    workspace/
-      # Planned extraction; current sidebar and Create SIT Page are in App.tsx.
-    editor/
-      # Planned extraction; current editor is in App.tsx.
-    export/
-      # Planned extraction; current export dialog is in App.tsx.
     ui/
-      # Shadcn UI primitives only.
+      # Base/shared UI primitives: Button, Input, Table, Modal, Card, Badge, and feedback.
+    features/
+      create-tmp-iso/
+        # TMP/ISO form and preview table components.
+      create-sit-page/
+        # SIT Page form, coverage summary, preview, and test-case table components.
+      check-sync-te/
+        # TE status cards, comparison rows, and sync-log components.
+      upload-capture/
+        # Scenario/target selectors, image dropzone, and upload queue components.
+      import-test-case/
+        # Excel import modal, workbook preview, validation, and parser components.
+  app/
+    # Future routing and provider boundary.
   domain/
     types.ts
-      # Implemented shared contracts for credentials, suites, steps, screenshots, annotations.
-    canvas.ts
-      # Implemented coordinate conversion and annotation rendering helpers.
-    templates/
-      # Planned serializer boundary; current minimal HTML generation is in App.tsx.
-    jira/
-      # Planned mapper boundary; current API operations are in infrastructure/api.
-    confluence/
-      # Planned mapper boundary; current API operations are in infrastructure/api.
-  infrastructure/
-    storage/
-      db.ts
-        # Implemented Dexie database definition, seed data, and cleanup transaction.
-      credentials.ts
-        # Implemented versioned localStorage credential repository.
-    api/
-      atlassian.ts
-        # Implemented direct Jira/Confluence fetch clients and safe error normalization.
+      # Shared contracts used by feature components and future integrations.
 ```
 
-## 4. Dependency Direction
+Feature directory names must always be kebab-case. Use `create-sit-page`, not `Create SIT Page` or `CreateSitPage`.
+
+## 3. Dependency Direction
 
 ```text
-components -> app/domain/infrastructure
-app        -> domain/infrastructure
-infrastructure -> domain
-domain     -> no UI or browser-specific presentation code
+components/features -> components/ui and typed local feature state
+app                 -> components/features and domain
+domain              -> no UI or presentation code
 ```
 
-Presentational components must not contain direct IndexedDB transactions or raw Atlassian `fetch` calls. They should receive typed data and callbacks from the app/domain boundary.
+Feature components compose shared primitives and local mock state. They must not contain backend calls, authentication, database transactions, or external-service requests during the UI phase.
 
-## 5. Authentication and Route Flow
+## 4. Dashboard Composition
 
-The application uses light React state for the active session and hash navigation:
+The UI shell consists of a top bar, collapsible sidebar, page context, main content area, toast feedback, and confirmation dialogs. The sidebar routes to:
 
-```text
-isAuthenticated = false
-  -> `#/setup` standalone page
-  -> non-empty credential submission
-  -> isAuthenticated = true
-  -> `#/workspace` dashboard
-  -> Logout
-  -> clear active session
-  -> `#/setup`
-```
+- `create-tmp-iso` - Create TMP/ISO
+- `create-sit-page` - Create SIT Page
+- `check-sync-te` - Check & Sync TE
+- `upload-capture` - Upload Capture
+- `import-test-case` - Import Test Case
 
-Protected views include the workspace and editor. The setup page renders as a dedicated page, not a modal over protected content. Persisted credentials initialize the session, while logout clears the active session and saved credential record.
+The default active view is `create-sit-page`. Each module renders from its matching `src/components/features/<kebab-case-module-name>` boundary.
 
-## 6. Dashboard Composition
+## 5. Feature Boundaries
 
-The authenticated shell consists of:
+### `create-tmp-iso`
 
-- Top bar with QPilot cube mark, title, subtitle, settings action, and logout action.
-- Collapsible sidebar with five navigation items:
-  - Create TMP/ISO
-  - Create SIT Page
-  - Check & Sync TE
-  - Upload Capture
-  - Import Test Case
-- Main view selected from lightweight `navItem` local state.
-- Default active view: Create SIT Page.
+Contains the TMP/ISO form and local preview outline. No Jira or Confluence behavior is invented in this custom module.
 
-Non-default menu items may initially render a clear placeholder state. Navigation state should not become a complex menu or state engine.
+### `create-sit-page`
 
-## 7. Create SIT Page Composition
+Contains document details, local test-case rows using `action`, `data`, and `expectedResult`, coverage summary, storage-format preview, and local generation feedback.
 
-```text
-Create SIT Page | Create Confluence SIT Document
-  +------------------------+------------------------------+
-  | Form panel             | Preview panel                 |
-  | Space Key Confluence   | Coverage: 100                 |
-  | Parent Page ID         | Status: Empty                 |
-  | Jira Test Execution Key| Tampilan SIT Page             |
-  | SIT PAGE NAME          | Expand / Without Expand      |
-  | Load Test Cases         | + Add TC                      |
-  | Download + Sample      | Test-case table               |
-  | Generate SIT PAGE      |                                |
-  +------------------------+------------------------------+
-```
+### `check-sync-te`
 
-The form and preview are currently local UI state. `Load Test Cases` displays a local success notification; `Generate SIT PAGE` is currently a UI action without a live Confluence mutation. Existing Jira/Confluence client functions are available for the separate export flow.
+Contains Jira/Xray-shaped mock test rows, exact comparison statuses, separate capture badges, row-level actions, and confirmation previews. It must not add Select All, Reorder Mode, or bulk mutations.
 
-## 8. Storage Boundaries
+### `upload-capture`
 
-### localStorage
+Contains scenario and target selectors, image dropzone, upload controls, clipboard affordance, queue metadata, and simulated per-file progress.
 
-Use only for small settings:
+### `import-test-case`
 
-- `sit-web.credentials.v1`
-- `sit-web.preferences.v1`
+Contains workbook intake, template action, validation notes, preview table, include/exclude controls, inline results, edit affordances, and simulated sequential import with retry-failed-only behavior.
 
-PAT persistence is opt-in. Browser `localStorage` is not an encrypted vault.
+## 6. UI-Phase Data Rules
 
-### IndexedDB via Dexie
+- Keep mock data separate from feature presentation when the data is reused.
+- Use realistic Jira test keys, Test Execution keys, test case IDs, assignees, Xray statuses, and Confluence page names.
+- Use local state and mock data only until the complete UI is approved.
+- Use confirmation dialogs for destructive local actions.
+- Preserve exact shared step names: `action`, `data`, and `expectedResult`.
 
-Use for growing or binary local data:
+## 7. Testing Boundaries
 
-- `suites`
-- `steps`
-- `screenshots`
-- Embedded `CanvasAnnotation[]` values on screenshots
+- Component tests cover sidebar navigation, feature forms, tables, dialogs, validation, upload queues, and import previews.
+- Browser tests cover all five kebab-case routes, responsive navigation, simulated async states, and destructive-action confirmation.
 
-Screenshots must remain Blob values and must not be converted to Base64 for local persistence.
+## 8. Change Rules
 
-## 9. Security Rules
-
-- Deploy over HTTPS.
-- Use direct Jira/Confluence requests only; no proxy workaround.
-- Use `credentials: "omit"` for cross-origin requests unless explicitly required.
-- Never log PATs, authorization headers, screenshots, or generated page bodies.
-- Keep PATs out of URLs, route state, DOM attributes, and telemetry.
-- Escape user-controlled text before generating Confluence HTML.
-- Show the local-storage risk during setup.
-- Require explicit confirmation before remote writes and destructive local cleanup.
-- Configure Jira/Confluence CORS for the production application origin.
-
-## 10. Testing Boundaries
-
-- Domain tests: canvas geometry, status mapping, HTML escaping, payload mapping.
-- Infrastructure tests: Dexie transactions, credential persistence, API error normalization.
-- Component tests: setup form, route guard, sidebar navigation, Create SIT Page controls.
-- Browser tests: setup -> dashboard -> logout, editor navigation, export confirmation, offline behavior.
-
-## 11. Change Rules
-
-- Keep feature changes localized to the owning folder.
-- Add a domain type before duplicating an object shape in a component.
-- Keep route/session state simple until real multi-user requirements exist.
-- Do not add a backend, auth library, global state framework, or server proxy without an explicit architecture decision.
+- Keep feature changes localized to `src/components/features/<kebab-case-module-name>`.
+- Put genuinely reusable primitives in `src/components/ui`.
+- Avoid one-off abstractions and giant page components.
+- Do not add backend, authentication, database, or Jira/Xray/Confluence integrations before explicit UI approval.

@@ -69,11 +69,13 @@ The application must be deployed over HTTPS. Direct browser calls require the Ji
 src/
   app/                  # routing, providers, application state
   components/
-    auth/               # PAT setup and connection status
-    capture/            # capture intake and queue
-    editor/             # canvas editor and toolbar
-    export/             # export modal and preview
-    ui/                 # Shadcn components
+    ui/                 # Base/shared UI primitives
+    features/
+      create-tmp-iso/   # TMP/ISO forms and preview tables
+      create-sit-page/  # SIT Page forms, summaries, and tables
+      check-sync-te/    # TE status cards and sync logs
+      upload-capture/   # Image upload and queue components
+      import-test-case/ # Excel import modal and parser components
   domain/
     capture/            # capture validation and ordering
     editor/             # canvas model, commands, rendering
@@ -85,7 +87,7 @@ src/
     storage/            # localStorage repositories and Dexie database
 ```
 
-React components orchestrate domain and infrastructure modules. API calls, IndexedDB transactions, image geometry, and Confluence HTML generation should not be embedded in presentational components.
+Feature components compose shared UI primitives and local mock state during the UI phase. Backend calls, authentication, database transactions, and external-service requests must not be embedded in presentational components.
 
 ## 3. Credential and Preference Storage
 

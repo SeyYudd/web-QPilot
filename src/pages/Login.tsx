@@ -1,0 +1,141 @@
+import { useState, type FormEvent } from "react"
+import { useNavigate } from "react-router-dom"
+import { Eye, EyeOff, LoaderCircle } from "lucide-react"
+import { toast } from "sonner"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+
+export const AUTH_STORAGE_KEY = "qpilot.authenticated"
+
+export default function Login() {
+  const navigate = useNavigate()
+  const [jiraToken, setJiraToken] = useState("")
+  const [confluenceToken, setConfluenceToken] = useState("")
+  const [remember, setRemember] = useState(true)
+  const [showJiraToken, setShowJiraToken] = useState(false)
+  const [showConfluenceToken, setShowConfluenceToken] = useState(false)
+  const [loading, setLoading] = useState(false)
+
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (!jiraToken.trim() || !confluenceToken.trim()) {
+      toast.error("Silakan isi Personal Access Token Jira dan Confluence")
+      return
+    }
+
+    setLoading(true)
+    window.setTimeout(() => {
+      const payload = { jiraToken, confluenceToken }
+      if (remember) {
+        window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(payload))
+      } else {
+        window.sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(payload))
+      }
+      toast.success("Kredensial berhasil diverifikasi!")
+      navigate("/dashboard", { replace: true })
+    }, 650)
+  }
+
+  return (
+    <main className="min-h-screen w-full bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 flex items-center justify-center p-6">
+      <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+        
+        {/* Left Side - Typography Branding */}
+        <div className="space-y-4 text-slate-800 pr-0 md:pr-8">
+          <h1 className="font-serif text-4xl lg:text-5xl font-normal leading-tight tracking-tight">
+            Tempat buat Bikin sama Upload Jira dan Confluence
+          </h1>
+        </div>
+
+        {/* Right Side - Floating Auth Card */}
+        <div className="bg-white/90 backdrop-blur-md p-8 md:p-10 rounded-3xl shadow-xl border border-white/60">
+          <div className="mb-8">
+            <span className="font-serif text-slate-400 text-sm">Get Started</span>
+            <h2 className="font-serif text-2xl text-slate-800 mt-1">Connect your tools</h2>
+            <hr className="mt-4 border-slate-200" />
+          </div>
+
+          <form onSubmit={submit} className="space-y-6">
+            {/* Jira Field */}
+            <div className="space-y-2">
+              <label className="font-serif text-slate-800 text-sm block">Jira</label>
+              <div className="relative">
+                <Input
+                  type={showJiraToken ? "text" : "password"}
+                  value={jiraToken}
+                  onChange={(e) => setJiraToken(e.target.value)}
+                  placeholder="Personal Access Token"
+                  className="rounded-full py-5 px-5 text-sm bg-white border-slate-300 focus-visible:ring-indigo-400 pr-12 shadow-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowJiraToken(!showJiraToken)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
+                  {showJiraToken ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </div>
+
+            <hr className="border-slate-100 w-1/2 mx-auto my-2" />
+
+            {/* Confluence Field */}
+            <div className="space-y-2">
+              <label className="font-serif text-slate-800 text-sm block">Confluence</label>
+              <div className="relative">
+                <Input
+                  type={showConfluenceToken ? "text" : "password"}
+                  value={confluenceToken}
+                  onChange={(e) => setConfluenceToken(e.target.value)}
+                  placeholder="Personal Access Token"
+                  className="rounded-full py-5 px-5 text-sm bg-white border-slate-300 focus-visible:ring-indigo-400 pr-12 shadow-sm"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfluenceToken(!showConfluenceToken)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
+                  {showConfluenceToken ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </div>
+
+            {/* Checkbox Remember */}
+            <div className="flex items-start gap-2 pt-1">
+              <input
+                type="checkbox"
+                id="remember"
+                checked={remember}
+                onChange={(e) => setRemember(e.target.checked)}
+                className="mt-1 rounded border-slate-300 text-indigo-600 focus:ring-indigo-400"
+              />
+              <label htmlFor="remember" className="text-xs text-slate-600 cursor-pointer leading-tight">
+                <span className="font-semibold block text-slate-800">Remember Credentials</span>
+                Stored in localStorage
+              </label>
+            </div>
+
+            {/* Submit Action */}
+            <div className="pt-4 text-center">
+              <Button
+                type="submit"
+                disabled={loading}
+                variant="link"
+                className="font-serif text-xl text-slate-800 hover:text-indigo-600 underline underline-offset-8 transition-colors p-0 h-auto"
+              >
+                {loading ? (
+                  <span className="flex items-center gap-2">
+                    <LoaderCircle className="animate-spin" size={18} /> Connecting...
+                  </span>
+                ) : (
+                  "Enter Workspace"
+                )}
+              </Button>
+            </div>
+          </form>
+        </div>
+
+      </div>
+    </main>
+  )
+}

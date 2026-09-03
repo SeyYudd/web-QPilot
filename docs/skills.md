@@ -1,6 +1,6 @@
 # Engineering Team Skills Matrix & Tech Requirements
 
-> Current implementation note: most UI is presently concentrated in `src/App.tsx`, with supporting domain and infrastructure modules. The component/domain split below is the target extraction boundary.
+> Current implementation note: the UI is organized around shared primitives in `src/components/ui` and feature boundaries in `src/components/features/<kebab-case-module-name>`.
 
 ## 1. Core Technical Competencies
 
@@ -19,17 +19,18 @@
 | Area | Current state | Follow-up skill needed |
 | --- | --- | --- |
 | Hash routing | Implemented in `App.tsx` with `window.location.hash` | Extract route guard/navigation when route count grows |
-| QPilot sidebar | Implemented with local `navItem` and `sidebarCollapsed` state | Extract reusable navigation component |
-| Create SIT Page | Local form and preview UI implemented | Connect loading, serialization, and Confluence mutation |
-| Atlassian clients | Implemented in `src/infrastructure/api/atlassian.ts` | Add page search, update, retry, and schema validation |
-| Dexie storage | Implemented in `src/infrastructure/storage/db.ts` | Add migrations, quota UI, and repository tests |
-| Canvas | Implemented in `src/domain/canvas.ts` and editor UI | Complete crop/transform/pixelation behavior and extraction |
+| QPilot sidebar | Shared shell with local navigation state | Extract reusable navigation component if route count grows |
+| Create TMP/ISO | UI boundary: `src/components/features/create-tmp-iso` | Refine module UI after review |
+| Create SIT Page | UI boundary: `src/components/features/create-sit-page` | Refine module UI after review |
+| Check & Sync TE | UI boundary: `src/components/features/check-sync-te` | Refine module UI after review |
+| Upload Capture | UI boundary: `src/components/features/upload-capture` | Refine module UI after review |
+| Import Test Case | UI boundary: `src/components/features/import-test-case` | Refine module UI after review |
 
 ### Required implementation practices
 
-- Keep API, storage, canvas, and serialization logic outside presentational components.
+- Keep backend, authentication, storage, external-service calls, and serialization logic outside presentational components.
 - Prefer typed boundaries and explicit error states over untyped response handling.
-- Preserve client-only architecture; do not introduce a backend proxy to bypass CORS.
+- Preserve the UI-only phase; do not introduce backend or external integrations before explicit UI approval.
 - Ensure icon-only controls have accessible names or tooltips.
 - Design every feature for desktop and mobile use.
 

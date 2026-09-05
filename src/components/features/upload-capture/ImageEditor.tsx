@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Crop,
   Type,
@@ -132,7 +132,7 @@ export default function ImageEditorView() {
   const [editingText, setEditingText] = useState<{ id?: string; x: number; y: number; text: string } | null>(null);
 
   // Save State to History Stack
-  const commitState = (nextItems: Item[]) => {
+  const commitState = useCallback((nextItems: Item[]) => {
     setPast((prev) => [
       ...prev,
       {
@@ -145,112 +145,7 @@ export default function ImageEditorView() {
     ]);
     setItems(nextItems);
     setFuture([]);
-  };
-
-  // --- Keyboard Shortcuts Handlers ---
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (editingText) return;
-
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z" && !e.shiftKey) {
-        e.preventDefault();
-        handleUndo();
-      } else if (
-        ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y") ||
-        ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "z")
-      ) {
-        e.preventDefault();
-        handleRedo();
-      } else if (e.key === "Delete" || e.key === "Backspace") {
-        if (selectedId) {
-          e.preventDefault();
-          commitState(items.filter((i) => i.id !== selectedId));
-          setSelectedId(undefined);
-        }
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [past, future, items, selectedId, editingText]);
-
-  // --- Drawing Core Engine ---
-  const draw = () => {
-    const canvas = canvasRef.current;
-    const image = imageRef.current;
-    if (!canvas || !image) return;
-
-    const isRotated90 = rotation === 90 || rotation === 270;
-    canvas.width = isRotated90 ? image.naturalHeight : image.naturalWidth;
-    canvas.height = isRotated90 ? image.naturalWidth : image.naturalHeight;
-
-    const ctx = canvas.getContext("2d")!;
-
-    // Background Canvas Set to White
-    ctx.fillStyle = "#FFFFFF";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    ctx.save();
-    ctx.translate(canvas.width / 2, canvas.height / 2);
-    ctx.rotate((rotation * Math.PI) / 180);
-    ctx.scale(flipH ? -1 : 1, flipV ? -1 : 1);
-    ctx.drawImage(
-      image,
-      -image.naturalWidth / 2,
-      -image.naturalHeight / 2,
-      image.naturalWidth,
-      image.naturalHeight
-    );
-    ctx.restore();
-
-    // Render Items
-    items.forEach((item) => {
-      if (editingText && editingText.id === item.id) return;
-      ctx.save();
-      renderItem(ctx, item);
-
-      if (item.id === selectedId && tool === "select") {
-        ctx.strokeStyle = "#0857C3";
-        ctx.setLineDash([6, 4]);
-        ctx.lineWidth = 2;
-        if (item.kind === "draw") {
-          const box = getStrokeBoundingBox(item.points);
-          ctx.strokeRect(box.x - 4, box.y - 4, box.w + 8, box.h + 8);
-        } else {
-          ctx.strokeRect(item.box.x - 2, item.box.y - 2, item.box.w + 4, item.box.h + 4);
-        }
-      }
-      ctx.restore();
-    });
-
-    // Render Crop Bounding Box & Handles
-    if (cropMode && cropBox) {
-      ctx.save();
-      ctx.strokeStyle = "#ffffff";
-      ctx.lineWidth = 2;
-      ctx.setLineDash([6, 6]);
-      ctx.strokeRect(cropBox.x, cropBox.y, cropBox.w, cropBox.h);
-
-      ctx.strokeStyle = "#0857C3";
-      ctx.lineWidth = 1.5;
-      ctx.setLineDash([]);
-      ctx.strokeRect(cropBox.x - 1, cropBox.y - 1, cropBox.w + 2, cropBox.h + 2);
-
-      const handles = getCropHandlePositions(cropBox);
-      ctx.fillStyle = "#ffffff";
-      ctx.strokeStyle = "#0857C3";
-      ctx.lineWidth = 2;
-
-      Object.values(handles).forEach((h) => {
-        ctx.beginPath();
-        ctx.rect(h.x - 5, h.y - 5, 10, 10);
-        ctx.fill();
-        ctx.stroke();
-      });
-
-      ctx.restore();
-    }
-  };
+  }, [items, rotation, flipH, flipV]);
 
   const getCropHandlePositions = (box: Box): Record<Exclude<CropHandle, "move">, Point> => {
     const { x, y, w, h } = box;
@@ -267,21 +162,27 @@ export default function ImageEditorView() {
   };
 
   const getCropHandleAtPoint = (p: Point, box: Box): CropHandle | null => {
-    const threshold = 12;
     const handles = getCropHandlePositions(box);
-
-    for (const [key, pos] of Object.entries(handles)) {
-      if (Math.abs(p.x - pos.x) <= threshold && Math.abs(p.y - pos.y) <= threshold) {
-        return key as CropHandle;
-      }
-    }
-    if (p.x >= box.x && p.x <= box.x + box.w && p.y >= box.y && p.y <= box.y + box.h) {
-      return "move";
-    }
+    const hit = Object.entries(handles).find(
+      ([, pos]) => Math.abs(p.x - pos.x) <= 8 && Math.abs(p.y - pos.y) <= 8,
+    );
+    if (hit) return hit[0] as CropHandle;
+    if (p.x >= box.x && p.x <= box.x + box.w && p.y >= box.y && p.y <= box.y + box.h) return "move";
     return null;
   };
 
-  const renderItem = (ctx: CanvasRenderingContext2D, item: Item) => {
+  const getStrokeBoundingBox = (points: Point[]): Box => {
+    const xs = points.map((p) => p.x);
+    const ys = points.map((p) => p.y);
+    const minX = Math.min(...xs);
+    const maxX = Math.max(...xs);
+    const minY = Math.min(...ys);
+    const maxY = Math.max(...ys);
+    return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
+  };
+
+  // --- Drawing Core Engine ---
+  const renderItem = useCallback((ctx: CanvasRenderingContext2D, item: Item) => {
     if (item.kind === "draw") {
       if (item.points.length < 2) return;
       ctx.strokeStyle = item.color;
@@ -373,21 +274,89 @@ export default function ImageEditorView() {
         ctx.fill();
       }
     }
-  };
+  }, []);
 
-  const getStrokeBoundingBox = (points: Point[]): Box => {
-    const xs = points.map((p) => p.x);
-    const ys = points.map((p) => p.y);
-    const minX = Math.min(...xs);
-    const maxX = Math.max(...xs);
-    const minY = Math.min(...ys);
-    const maxY = Math.max(...ys);
-    return { x: minX, y: minY, w: maxX - minX, h: maxY - minY };
-  };
+  const draw = useCallback(() => {
+    const canvas = canvasRef.current;
+    const image = imageRef.current;
+    if (!canvas || !image) return;
+
+    const isRotated90 = rotation === 90 || rotation === 270;
+    canvas.width = isRotated90 ? image.naturalHeight : image.naturalWidth;
+    canvas.height = isRotated90 ? image.naturalWidth : image.naturalHeight;
+
+    const ctx = canvas.getContext("2d")!;
+
+    // Background Canvas Set to White
+    ctx.fillStyle = "#FFFFFF";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    ctx.save();
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+    ctx.rotate((rotation * Math.PI) / 180);
+    ctx.scale(flipH ? -1 : 1, flipV ? -1 : 1);
+    ctx.drawImage(
+      image,
+      -image.naturalWidth / 2,
+      -image.naturalHeight / 2,
+      image.naturalWidth,
+      image.naturalHeight
+    );
+    ctx.restore();
+
+    // Render Items
+    items.forEach((item) => {
+      if (editingText && editingText.id === item.id) return;
+      ctx.save();
+      renderItem(ctx, item);
+
+      if (item.id === selectedId && tool === "select") {
+        ctx.strokeStyle = "#0857C3";
+        ctx.setLineDash([6, 4]);
+        ctx.lineWidth = 2;
+        if (item.kind === "draw") {
+          const box = getStrokeBoundingBox(item.points);
+          ctx.strokeRect(box.x - 4, box.y - 4, box.w + 8, box.h + 8);
+        } else {
+          ctx.strokeRect(item.box.x - 2, item.box.y - 2, item.box.w + 4, item.box.h + 4);
+        }
+      }
+      ctx.restore();
+    });
+
+    // Render Crop Bounding Box & Handles
+    if (cropMode && cropBox) {
+      ctx.save();
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 6]);
+      ctx.strokeRect(cropBox.x, cropBox.y, cropBox.w, cropBox.h);
+
+      ctx.strokeStyle = "#0857C3";
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([]);
+      ctx.strokeRect(cropBox.x - 1, cropBox.y - 1, cropBox.w + 2, cropBox.h + 2);
+
+      const handles = getCropHandlePositions(cropBox);
+      ctx.fillStyle = "#ffffff";
+      ctx.strokeStyle = "#0857C3";
+      ctx.lineWidth = 2;
+
+      Object.values(handles).forEach((h) => {
+        ctx.beginPath();
+        ctx.rect(h.x - 5, h.y - 5, 10, 10);
+        ctx.fill();
+        ctx.stroke();
+      });
+
+      ctx.restore();
+    }
+  }, [items, rotation, flipH, flipV, selectedId, cropMode, cropBox, editingText, tool, renderItem]);
+
 
   useEffect(() => {
     draw();
-  }, [items, rotation, flipH, flipV, selectedId, cropMode, cropBox, editingText]);
+  }, [items, rotation, flipH, flipV, selectedId, cropMode, cropBox, editingText, draw]);
 
   useEffect(() => {
     const receive = (event: MessageEvent) => {
@@ -406,7 +375,7 @@ export default function ImageEditorView() {
     window.addEventListener("message", receive);
     if (window.opener) window.opener.postMessage({ type: "qpilot-image-editor-ready" }, window.location.origin);
     return () => window.removeEventListener("message", receive);
-  }, []);
+  }, [draw]);
 
   const getCanvasPoint = (e: React.PointerEvent<HTMLCanvasElement>): Point => {
     const canvas = canvasRef.current;
@@ -700,7 +669,7 @@ export default function ImageEditorView() {
     img.src = croppedUrl;
   };
 
-  const handleUndo = () => {
+  const handleUndo = useCallback(() => {
     if (!past.length) return;
     const previousFrame = past.at(-1)!;
 
@@ -729,9 +698,9 @@ export default function ImageEditorView() {
       };
       img.src = previousFrame.imageSrc;
     }
-  };
+  }, [past, future, items, rotation, flipH, flipV, draw]);
 
-  const handleRedo = () => {
+  const handleRedo = useCallback(() => {
     if (!future.length) return;
     const nextFrame = future[0];
 
@@ -760,7 +729,34 @@ export default function ImageEditorView() {
       };
       img.src = nextFrame.imageSrc;
     }
-  };
+  }, [past, future, items, rotation, flipH, flipV, draw]);
+
+  // --- Keyboard Shortcuts Handlers ---
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (editingText) return;
+
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z" && !e.shiftKey) {
+        e.preventDefault();
+        handleUndo();
+      } else if (
+        ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "y") ||
+        ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "z")
+      ) {
+        e.preventDefault();
+        handleRedo();
+      } else if (e.key === "Delete" || e.key === "Backspace") {
+        if (selectedId) {
+          e.preventDefault();
+          commitState(items.filter((i) => i.id !== selectedId));
+          setSelectedId(undefined);
+        }
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [past, future, items, selectedId, editingText, commitState, handleUndo, handleRedo]);
 
   // 1. Save Image (Function bawaan eksisting)
   const saveImage = () => {

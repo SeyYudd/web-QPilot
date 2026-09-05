@@ -1,6 +1,6 @@
 # Engineering Team Skills Matrix & Tech Requirements
 
-> Current implementation note: the UI is organized around shared primitives in `src/components/ui` and feature boundaries in `src/components/features/<kebab-case-module-name>`.
+> Current implementation note: the UI is organized around shared primitives in `src/components/ui` and feature boundaries in `src/components/features/<kebab-case-module-name>`. Networking is centralized in `src/lib/auth/session.ts` (`apiFetch`) and `src/lib/api/*`, with the dev proxy in `vite.config.ts`.
 
 ## 1. Core Technical Competencies
 
@@ -18,19 +18,22 @@
 
 | Area | Current state | Follow-up skill needed |
 | --- | --- | --- |
-| Hash routing | Implemented in `App.tsx` with `window.location.hash` | Extract route guard/navigation when route count grows |
-| QPilot sidebar | Shared shell with local navigation state | Extract reusable navigation component if route count grows |
+| Hash routing | Implemented in `App.tsx` with `window.location.hash` + `ProtectedRoute` | Extract route guard/navigation when route count grows |
+| PAT auth & session | Implemented in `src/lib/auth/session.ts` (`AuthError` taxonomy, silent validation, 401 auto-eviction) | Add refresh/rotation UX when policy requires it |
+| Central networking | `apiFetch` choke point: proxy rewrite, Bearer auth, `credentials: "omit"`, XSRF/AJAX headers | Keep all header/proxy changes in this one function |
+| Dev proxy | `vite.config.ts` strips cookies and rewrites Origin/Referer per target | Mirror the rules as reverse-proxy config for production |
+| Create SIT Page | Implemented: loads cases from Jira TE, publishes to Confluence | Web-side SIT HTML builder (`QPilotSitTemplateBuilder`) still extension-provided |
+| Check & Sync TE | Implemented: compares local cases against Jira TE | Fix latent wrong-PAT usage for Confluence reads |
+| Upload Capture | Implemented with extension blob-store path; web fallback pending | Implement web-side blob store/background upload |
+| Import Test Case | Implemented: Xray test creation with degraded fallback, repo folder + TE registration | — |
 | Create TMP/ISO | UI boundary: `src/components/features/create-tmp-iso` | Refine module UI after review |
-| Create SIT Page | UI boundary: `src/components/features/create-sit-page` | Refine module UI after review |
-| Check & Sync TE | UI boundary: `src/components/features/check-sync-te` | Refine module UI after review |
-| Upload Capture | UI boundary: `src/components/features/upload-capture` | Refine module UI after review |
-| Import Test Case | UI boundary: `src/components/features/import-test-case` | Refine module UI after review |
 
 ### Required implementation practices
 
-- Keep backend, authentication, storage, external-service calls, and serialization logic outside presentational components.
+- Keep authentication, storage, external-service calls, and serialization logic in `src/lib`, outside presentational components.
 - Prefer typed boundaries and explicit error states over untyped response handling.
-- Preserve the UI-only phase; do not introduce backend or external integrations before explicit UI approval.
+- Never parse API responses with bare `response.json()`; use the `safeParseJson` helpers (204/empty-body safe).
+- Never add Atlassian headers per-request; they belong in `apiFetch` (client) and `prepareProxyReq` (proxy).
 - Ensure icon-only controls have accessible names or tooltips.
 - Design every feature for desktop and mobile use.
 
@@ -64,12 +67,12 @@
 
 ### Integration requirements
 
-- Understand that Jira and Confluence must allow the deployed origin through CORS.
-- Never expose authorization headers, PATs, or request bodies in logs.
-- Use `credentials: "omit"` unless the deployment explicitly requires otherwise.
-- Distinguish authentication, authorization, CORS, network, conflict, and quota failures.
-- Use optimistic concurrency for Confluence updates and handle HTTP 409 safely.
-- Use browser-generated `FormData` for Jira attachments without manually setting multipart boundaries.
+- Understand that Jira/Confluence Data Center at BRI enforce XSRF checks on cookie-bearing sessions; all traffic must go through the same-origin proxy with cookies stripped.
+- Jira API is v2 (`/rest/api/2`, Xray `/rest/raven/1.0`); Confluence uses `/rest/api` with `X-Requested-With: XMLHttpRequest` on mutations.
+- Never expose authorization headers, PATs, or request bodies in logs (reject logs must exclude the `Authorization` header).
+- Always send `credentials: "omit"` so browser session cookies never reach Atlassian alongside the PAT.
+- Distinguish authentication (401 → auto-evict), authorization (403 → detailed report), CORS, network, conflict, and quota failures via the `AuthError` taxonomy.
+- Parse responses with `safeParseJson` — Jira/Confluence return 204/empty bodies on many writes.
 - Keep status mappings configurable because Jira workflows vary by installation.
 
 ## 4. Canvas & Image Processing

@@ -4,36 +4,77 @@ import { Eye, EyeOff, LoaderCircle } from "lucide-react"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog"
 
-export const AUTH_STORAGE_KEY = "qpilot.authenticated"
+import { loadSession, saveSession, clearSession, touchLastValidated } from "@/lib/auth/session"
+import { validateSession } from "@/lib/auth/validation"
 
 export default function Login() {
   const navigate = useNavigate()
   const [jiraToken, setJiraToken] = useState("")
   const [confluenceToken, setConfluenceToken] = useState("")
-  const [remember, setRemember] = useState(true)
   const [showJiraToken, setShowJiraToken] = useState(false)
   const [showConfluenceToken, setShowConfluenceToken] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [pnMismatch, setPnMismatch] = useState<{ jiraPn: string; confPn: string } | null>(null)
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!jiraToken.trim() || !confluenceToken.trim()) {
       toast.error("Silakan isi Personal Access Token Jira dan Confluence")
       return
     }
-
     setLoading(true)
-    window.setTimeout(() => {
-      const payload = { jiraToken, confluenceToken }
-      if (remember) {
-        window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(payload))
-      } else {
-        window.sessionStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(payload))
-      }
+    // Simpan session ke localStorage (Step 1), lalu validasi di background (Step 2).
+    saveSession({
+      pn: "",
+      displayName: "",
+      jiraPat: jiraToken.trim(),
+      confluencePat: confluenceToken.trim(),
+      lastValidated: new Date().toISOString(),
+    })
+    const session = loadSession()
+    if (!session) {
+      setLoading(false)
+      toast.error("Gagal menyimpan session. Coba lagi.")
+      return
+    }
+    const result = await validateSession(session)
+    setLoading(false)
+
+    if (result.outcome === "authenticated") {
       toast.success("Kredensial berhasil diverifikasi!")
       navigate("/dashboard", { replace: true })
-    }, 650)
+    } else if (result.outcome === "pnMismatch") {
+      setPnMismatch({ jiraPn: result.jiraPn, confPn: result.confluencePn })
+    } else if (result.outcome === "expired") {
+      clearSession()
+      toast.error("Session habis, silakan masukkan PAT baru.")
+} else if (result.outcome === "cors") {
+      clearSession()
+      toast.error(
+        "Validasi token gagal: browser diblokir CORS oleh Jira/Confluence. " +
+          "Origin aplikasi ini perlu di-allowlist di server, atau akses via proxy/extension.",
+      )
+    } else if (result.outcome === "network") {
+      toast.warning("Tidak dapat memvalidasi token (jaringan internal BRI tidak terhubung). Pastikan VPN aktif.")
+      navigate("/dashboard", { replace: true })
+    } else {
+      clearSession()
+      toast.error(result.detail || "Validasi token gagal. Periksa kembali PAT Anda.")
+    }
+  }
+
+  const proceedWithMismatch = () => {
+    const session = loadSession()
+    if (session) touchLastValidated(session)
+    setPnMismatch(null)
+    toast.success("Kredensial berhasil diverifikasi!")
+    navigate("/dashboard", { replace: true })
+  }
+  const rejectMismatch = () => {
+    setPnMismatch(null)
+    clearSession()
   }
 
   return (
@@ -100,21 +141,6 @@ export default function Login() {
               </div>
             </div>
 
-            {/* Checkbox Remember */}
-            <div className="flex items-start gap-2 pt-1">
-              <input
-                type="checkbox"
-                id="remember"
-                checked={remember}
-                onChange={(e) => setRemember(e.target.checked)}
-                className="mt-1 rounded border-slate-300 text-indigo-600 focus:ring-indigo-400"
-              />
-              <label htmlFor="remember" className="text-xs text-slate-600 cursor-pointer leading-tight">
-                <span className="font-semibold block text-slate-800">Remember Credentials</span>
-                Stored in localStorage
-              </label>
-            </div>
-
             {/* Submit Action */}
             <div className="pt-4 text-center">
               <Button
@@ -136,6 +162,14 @@ export default function Login() {
         </div>
 
       </div>
+
+      <ConfirmDialog
+        open={Boolean(pnMismatch)}
+        title="Perbedaan PN Jira & Confluence"
+        description={`PN Jira (${pnMismatch?.jiraPn}) tidak sama dengan PN Confluence (${pnMismatch?.confPn}). Apakah ingin tetap lanjut?`}
+        onClose={rejectMismatch}
+        onConfirm={proceedWithMismatch}
+      />
     </main>
   )
 }

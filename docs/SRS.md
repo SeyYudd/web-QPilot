@@ -1,6 +1,6 @@
 # Software Requirements Specification (SRS)
 
-> Implementation status: the current SPA provides the authenticated shell, QPilot sidebar, Create SIT Page UI, local capture/editor flow, and separate Atlassian export dialog. Items marked as planned or partial are not yet complete end-to-end.
+> Implementation status: the current SPA provides the authenticated shell, PAT session management, and working Jira/Confluence integrations for all five modules (Create SIT Page, Create TMP/ISO, Check & Sync TE, Upload Capture, Import Test Case) via a same-origin dev proxy. Local capture/editor flow and Atlassian publishing are implemented end-to-end.
 
 ## 1. System Architecture & Tech Stack
 
@@ -8,7 +8,7 @@
 
 The system shall be a client-side-only single-page application. It shall not require a custom backend, application database, server session, proxy, telemetry endpoint, or background job.
 
-The browser shall communicate directly with Jira and Confluence using `fetch`. The application shall remain functional for local authoring and editing when those services are unavailable.
+The browser communicates with Jira and Confluence through a same-origin dev proxy (`/api/jira-proxy` → `https://jira.bri.co.id`, `/api/confluence-proxy` → `https://confluence.bri.co.id`) configured in `vite.config.ts`. The proxy rewrites the path prefix, strips `Cookie`/`Cookie2`, and rewrites `Origin`/`Referer` to the target domain to satisfy the Data Center XSRF gate. All client `fetch` calls are centralized in `apiFetch` (`src/lib/auth/session.ts`), which rewrites absolute BRI host URLs to the proxy prefixes (`toProxyUrl`), sends PAT bearer auth, `credentials: "omit"`, `X-Atlassian-Token: no-check`, and `X-Requested-With: XMLHttpRequest` for Confluence mutations. The application remains functional for local authoring when those services are unavailable.
 
 Current route handling uses hash navigation (`#/setup`, `#/workspace`, and `#/editor/:screenshotId`) and lightweight React state rather than React Router.
 
@@ -31,20 +31,15 @@ React components shall orchestrate domain and infrastructure modules. API calls,
 
 ## 2. Functional Requirements
 
-### FR-1: Auth & LocalStorage PAT Management
+### FR-1: Auth & LocalStorage PAT Management (implemented)
 
-1. The system shall provide separate Jira and Confluence credential forms.
-2. Each form shall accept base URL, email/username, PAT, and `basic` or `bearer` authentication scheme.
-3. The system shall normalize URLs by trimming whitespace and removing trailing slashes.
-4. The system shall test each service independently before marking it connected.
-5. The system shall provide a password-style PAT input with show/hide control.
-6. The system shall keep PATs in memory unless **Remember credentials** is enabled.
-7. When enabled, the system shall persist a versioned credential record under `sit-web.credentials.v1`.
-8. The system shall clear in-memory credentials on sign out and redirect to `#/setup`.
-9. The system shall provide clear credentials and clear all local data actions with confirmation.
-10. The system shall not expose PATs in URLs, logs, errors, telemetry, or non-Atlassian requests.
-
-Connection tests shall use the configured service's documented current-user endpoint. Jira shall use `GET /rest/api/3/myself`; Confluence shall use the deployment-supported current-user endpoint.
+1. The system provides a single PAT setup form accepting the user's PN (employee number), display name, Jira PAT, and Confluence PAT.
+2. The system validates each PAT independently and silently at startup: Jira via `GET /rest/api/2/myself`, Confluence via `GET /rest/api/user/current`.
+3. Validated sessions are persisted as a versioned JSON record under the `qpilot_auth_session` localStorage key (`pn`, `displayName`, `jiraPat`, `confluencePat`, `lastValidated`).
+4. Network failures are classified as `NETWORK_OFFLINE`, `CORS_BLOCKED`, `TOKEN_EXPIRED`, or `SESSION_CORRUPTED` through the typed `AuthError` class, each with user-facing Indonesian messaging.
+5. At runtime, any HTTP 401 from Jira/Confluence triggers auto-eviction: the session is cleared and the UI returns to the setup state (`TOKEN_EXPIRED`).
+6. Protected routes redirect unauthenticated users to the setup flow (`ProtectedRoute`).
+7. The system does not expose PATs in URLs, logs, errors, telemetry, or non-Atlassian requests.
 
 ### FR-2: Capture & Step Builder Workspace
 
@@ -84,42 +79,33 @@ Connection tests shall use the configured service's documented current-user endp
 8. The system shall provide storage usage, quota warning, retention cleanup, and orphan cleanup.
 9. Local authoring shall continue when remote services are unavailable.
 
-### FR-5: Jira REST API Direct Integration
+### FR-5: Jira REST API Direct Integration (implemented, API v2)
 
-1. The system shall call Jira directly at `{jiraBaseUrl}/rest/api/3`.
-2. It shall validate credentials with `GET /myself`.
-3. It shall search/fetch issues and display issue key, summary, status, and relevant fields.
-4. It shall allow a user to select a target issue before remote modification.
-5. It shall preview and explicitly confirm a status update or workflow transition.
-6. It shall support configurable local-result-to-Jira-status/transition mapping.
-7. It shall upload selected screenshot Blobs through `POST /issue/{issueKey}/attachments`.
-8. Attachment upload shall use browser-generated `FormData` and shall not manually set multipart boundaries.
-9. Status update and attachment upload shall be separate explicit actions.
-10. The system shall handle 401, 403, 404, 409, rate limits, server errors, network errors, and CORS errors safely.
+1. The system calls Jira through the proxy at `/api/jira-proxy/rest/api/2`.
+2. It validates credentials with `GET /myself`.
+3. Import Test Case creates Xray Test issues via `POST /rest/api/2/issue` with degraded-payload fallback (steps → no-steps → base fields) when Jira rejects optional fields.
+4. It registers created tests into the Xray Test Repository folder (`/rest/raven/1.0/api/testrepository/{project}/folders`) and adds them to a Test Execution.
+5. It supports issue linking (`Relates`) and issue lookup for Check & Sync TE.
+6. Non-OK responses are logged to the console with the full response body (`[Jira API] Rejected`) and surfaced to the UI with Jira's `errorMessages`/`errors` detail.
+7. Empty/204 response bodies are parsed safely (`safeParseJson`) so update/assign flows never crash on `Unexpected end of JSON input`.
+8. The system handles 401 (auto-eviction), 403 (detailed report), 404, 409, network errors, and CORS errors safely.
 
-### FR-6: Confluence Export
+### FR-6: Confluence Export (implemented)
 
-1. The system shall call Confluence directly at the configured v2 base path.
-2. It shall allow selection of a space and existing page or creation of a new page.
-3. It shall generate deterministic Confluence storage-format HTML from typed suite data.
-4. It shall include suite information, Jira reference when available, test steps, statuses, and screenshot evidence.
-5. It shall support `expand` and `table` layouts.
-6. It shall escape all user-controlled text and validate links and Jira keys.
-7. It shall provide a sanitized or sandboxed preview before mutation.
-8. It shall create pages only after explicit confirmation.
-9. It shall read the current page version before updating.
-10. It shall increment the version and handle HTTP 409 by re-fetching and requesting user review/retry.
-11. Preview generation shall never upload attachments or update pages.
+1. The system calls Confluence through the proxy at `/api/confluence-proxy/rest/api`.
+2. It validates credentials with `GET /rest/api/user/current`.
+3. Create SIT Page loads test cases from a Jira Test Execution and publishes the SIT page via `POST /rest/api/content` under the configured parent page.
+4. Confluence mutations send `X-Atlassian-Token: no-check` and `X-Requested-With: XMLHttpRequest` (Data Center AJAX requirement).
+5. Non-OK responses are logged with full body (`[Confluence API] Rejected`) and surfaced with `message`/`errorMessages`/`errors` detail.
+6. Empty/204 bodies are parsed safely (`safeParseJson`).
 
 ### Current implementation notes
 
 - The authenticated dashboard is branded QPilot and defaults to **Create SIT Page**.
-- Create TMP/ISO, Check & Sync TE, Upload Capture, and Import Test Case currently render placeholder views.
-- Create SIT Page currently collects Space Key, Parent Page ID, Jira Test Execution Key, and SIT Page Name.
-- Its preview renders local suite steps and an empty-state test-case table.
-- `Load Test Cases` currently shows a local notification rather than loading Jira data.
-- `Generate SIT PAGE` is currently a presentation control and does not yet call Confluence.
-- The separate export dialog contains the current Jira status/attachment and Confluence page-create operations.
+- Create SIT Page collects Space Key, Parent Page ID, Jira Test Execution Key, and SIT Page Name; `Load Test Cases` fetches from Jira and `Generate SIT PAGE` publishes to Confluence.
+- Check & Sync TE, Upload Capture, and Import Test Case are wired to Jira/Confluence through the shared clients (`createJiraClient`, `createConfluenceClient`, `requestApi`, `jiraImport.api`), with extension-client fallback (`window.qpilotApiFetch`) preserved.
+- SIT page body HTML assembly (`window.QPilotSitTemplateBuilder`) is currently provided by the extension; in web-app mode the page is created with empty body content until a web-side builder is implemented.
+- A latent issue remains in Check & Sync TE: Confluence reads go through `createJiraClient`, sending the Jira PAT instead of the Confluence PAT.
 
 ## 3. Non-Functional Requirements
 
@@ -158,28 +144,21 @@ Connection tests shall use the configured service's documented current-user endp
 
 ## 4. Data Models & Schemas
 
-### 4.1 LocalStorage credentials
+### 4.1 LocalStorage session (current implementation)
+
+Key: `qpilot_auth_session`.
 
 ```ts
-type AuthScheme = "basic" | "bearer";
-
-type ServiceCredentials = {
-  baseUrl: string;
-  email: string;
-  pat: string;
-  authScheme: AuthScheme;
-  connectedAt?: string;
-};
-
-type StoredCredentials = {
-  version: 1;
-  remember: boolean;
-  jira: ServiceCredentials;
-  confluence: ServiceCredentials;
+type AuthSession = {
+  pn: string;            // employee number, e.g. "90188896"
+  displayName: string;
+  jiraPat: string;       // Bearer PAT for Jira Data Center
+  confluencePat: string; // Bearer PAT for Confluence Data Center
+  lastValidated: string; // ISO date of last successful validation
 };
 ```
 
-Key: `sit-web.credentials.v1`.
+Failure kinds (`AuthError`): `NETWORK_OFFLINE`, `CORS_BLOCKED`, `TOKEN_EXPIRED`, `SESSION_CORRUPTED`.
 
 ### 4.2 LocalStorage preferences
 

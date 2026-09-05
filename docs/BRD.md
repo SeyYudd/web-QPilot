@@ -1,12 +1,12 @@
 # Business Requirements Document (BRD)
 
-> Status: aligned with the current QPilot SPA implementation. The current release is a client-side prototype with local persistence and partial Atlassian publishing.
+> Status: aligned with the current QPilot SPA implementation. The application now has working PAT authentication, working Jira/Confluence integrations (Create SIT Page, Check & Sync TE, Upload Capture, Import Test Case) through a same-origin dev proxy, and local persistence.
 
 ## 1. Executive Summary & Project Background
 
 The SIT Web Generator will replace a desktop/extension-based automated test capture workflow with a browser-native quality assurance tool. The product will run as a static React application and allow QA users to capture evidence, build test documentation, annotate screenshots, and explicitly publish results to Jira and Confluence.
 
-The solution is client-only. Credentials and drafts remain in the user's browser, while Jira and Confluence receive data only through user-initiated direct requests. No application-owned backend, database server, proxy, or server-side job is permitted.
+The solution is client-only from the user's perspective: credentials and drafts remain in the user's browser, while Jira and Confluence receive data only through user-initiated requests. Because Jira/Confluence Data Center at BRI do not allowlist the app origin for CORS, the development setup uses a same-origin Vite dev proxy (`/api/jira-proxy`, `/api/confluence-proxy`) that forwards requests server-side and strips browser cookies. No application-owned backend, database, or server-side session exists; the proxy is a dev-time transport only and a production deployment requires an equivalent reverse-proxy rule at the hosting layer.
 
 ## 2. Business Problem & Solution Vision
 
@@ -28,12 +28,13 @@ The tool should be usable offline for drafting and editing, while remote operati
 
 ### Current delivery state
 
-- The authenticated QPilot shell and standalone setup page are implemented.
-- Create SIT Page is the default dashboard module.
-- The other four sidebar modules currently provide placeholder views.
+- The authenticated QPilot shell and PAT setup flow are implemented (localStorage session, silent validation, 401 auto-eviction).
+- All sidebar modules are implemented: Create SIT Page, Create TMP/ISO, Check & Sync TE, Upload Capture, and Import Test Case.
+- Import Test Case creates Jira Xray Test issues (with degraded-payload fallback), links them to the Test Repository folder, and adds them to a Test Execution.
+- Check & Sync TE compares local test cases against the Jira Test Execution (TE).
+- Create SIT Page loads test cases from Jira and publishes the SIT page to Confluence.
 - Local suites, steps, screenshot capture, annotation, and download flows are implemented.
-- The separate export dialog exposes Jira and Confluence actions.
-- Create SIT Page `Load Test Cases` and `Generate SIT PAGE` currently require further integration work.
+- Cross-origin access to Jira/Confluence Data Center is solved via the dev proxy plus PAT-bearer headers (`Authorization`, `X-Atlassian-Token: no-check`, `X-Requested-With: XMLHttpRequest`, `credentials: "omit"`).
 
 ## 3. Business Objectives & KPIs
 
@@ -148,7 +149,13 @@ The product must support **Sign out**, **Clear credentials**, and **Clear all lo
 
 ### CORS and deployment
 
-Jira and Confluence must allow the production web origin through CORS. Adding a frontend header cannot resolve a CORS restriction. A failed connection must identify CORS/network conditions separately from 401, 403, 404, 409, and quota errors.
+Jira/Confluence Data Center at BRI reject browser cross-origin requests and enforce XSRF checks on cookie-bearing sessions. The app therefore runs all Atlassian traffic through a same-origin proxy (`/api/jira-proxy`, `/api/confluence-proxy` in `vite.config.ts`) which:
+
+- strips `Cookie`/`Cookie2` headers (session cookies such as `JSESSIONID` and `atlassian.xsrf.token` otherwise trigger `XSRF check failed`),
+- rewrites `Origin`/`Referer` to the target domain,
+- forwards the PAT `Authorization: Bearer` header.
+
+On the client, `apiFetch` sends `credentials: "omit"`, `X-Atlassian-Token: no-check`, and (for Confluence mutations) `X-Requested-With: XMLHttpRequest`. A failed connection must identify CORS/network conditions separately from 401, 403, 404, 409, and quota errors. Production deployment must provide the equivalent reverse-proxy rules.
 
 ### Security principles
 

@@ -1,7 +1,20 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 
-interface ResultScreen {
+// Structuring types for Page Verification & Fix Panel
+export interface UnfilledTag {
+  tag: string;
+  context?: string;
+}
+
+export interface VerifyPageItem {
+  pageId: string;
+  title: string;
+  unfilledTags: UnfilledTag[];
+  [key: string]: unknown; // Elastic type fallback for dynamic properties
+}
+
+export interface ResultScreen {
   phase: string;
   title: string;
   status: "success" | "failed" | "skipped" | string;
@@ -9,18 +22,25 @@ interface ResultScreen {
   error?: string;
 }
 
-interface GenerateResultViewProps {
+export interface TagFixPanelProps {
+  pages: VerifyPageItem[];
+  busy: boolean;
+  confBase?: string;
+  onApply: (data: Record<string, unknown>) => void;
+}
+
+export interface GenerateResultViewProps {
   results: ResultScreen[];
   successPct: number;
   failedPct: number;
   confBase?: string;
   verifying: boolean;
-  verifyPages: any; // Sesuaikan dengan type page verification kamu
+  verifyPages: VerifyPageItem[] | null;
   onNew: () => void;
   onCheckAgain: () => void;
-  onPersist: (data: any) => void;
+  onPersist: (data: Record<string, unknown>) => void;
   DonutComponent?: React.ComponentType<{ successPct: number }>;
-  TagFixPanelComponent?: React.ComponentType<any>;
+  TagFixPanelComponent?: React.ComponentType<TagFixPanelProps>;
 }
 
 const STATUS_CONFIG: Record<

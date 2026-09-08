@@ -89,7 +89,7 @@ export function TagFixPanel({
           </Button>
           <Button
             type="button"
-            className="rounded-xl bg-indigo-600 text-xs text-white hover:bg-indigo-700"
+            className="rounded-xl bg-indigo-600 text-xs text-brand-foreground hover:bg-indigo-700"
             onClick={() => void applyAll()}
             disabled={!hasEdits || busy}
           >
@@ -100,7 +100,7 @@ export function TagFixPanel({
 
       <div className="space-y-4">
         {pages.map((page) => (
-          <div key={page.id} className="rounded-2xl border border-slate-200 bg-white p-4">
+          <div key={page.id} className="rounded-2xl border border-slate-200 bg-card p-4">
             <p className="mb-3 text-xs font-bold text-slate-800">
               {page.title}{" "}
               <a
@@ -123,7 +123,7 @@ export function TagFixPanel({
                       </code>
                       <span className="text-[10px] text-slate-400">x{t.count}</span>
                       <select
-                        className="ml-auto h-8 rounded-lg border border-slate-300 bg-white px-2 text-xs text-slate-700"
+                        className="ml-auto h-8 rounded-lg border border-slate-300 bg-card px-2 text-xs text-slate-700"
                         value={action?.type || ""}
                         onChange={(e) => {
                           const v = e.target.value as FixAction["type"] | "";
@@ -139,7 +139,7 @@ export function TagFixPanel({
                     </div>
                     {action && action.type !== "remove" && (
                       <input
-                        className="mt-2 h-8 w-full rounded-lg border border-slate-300 bg-white px-2 text-xs text-slate-700"
+                        className="mt-2 h-8 w-full rounded-lg border border-slate-300 bg-card px-2 text-xs text-slate-700"
                         placeholder={action.type === "link" ? "https://..." : "Nilai teks..."}
                         value={action.value}
                         onChange={(e) => setValue(page.id, t.tag, e.target.value)}

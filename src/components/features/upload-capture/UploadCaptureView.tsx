@@ -363,15 +363,15 @@ export default function UploadCaptureView({ editedImages = {} }: { editedImages?
     }
   };
 return (
-  <div className="grid gap-6 font-['Comic_Sans_MS','Comic_Sans',cursive] text-[#000000] lg:grid-cols-[340px_minmax(0,1fr)]">
+  <div className="grid gap-6 font-sans text-ink lg:grid-cols-[340px_minmax(0,1fr)]">
     {/* LEFT SIDE: CONTROLLER PANEL */}
-    <section className="flex flex-col justify-between rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm">
+    <section className="flex flex-col justify-between rounded-3xl border border-slate-200/80 bg-card p-6 shadow-sm">
       <div className="space-y-5">
         <div>
-          <span className="text-[10px] font-bold uppercase tracking-wider text-[#2563EB]">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-brand">
             Capture Controller
           </span>
-          <h2 className="text-xl font-bold text-[#000000]">Upload Capture</h2>
+          <h2 className="text-xl font-bold text-ink">Upload Capture</h2>
           <p className="mt-0.5 text-xs text-slate-500">
             Target & Expand Section Setup
           </p>
@@ -384,7 +384,7 @@ return (
           </label>
           <div className="flex gap-2">
             <input
-              className={`${fieldClass} rounded-2xl border-slate-200 focus:border-[#2563EB]`}
+              className={`${fieldClass} rounded-2xl border-slate-200 focus:border-brand`}
               value={pageId}
               onChange={(event) => setPageId(event.target.value)}
               onBlur={() => void fetchSections()}
@@ -394,7 +394,7 @@ return (
               variant="outline"
               onClick={() => void fetchSections()}
               disabled={loadingPage}
-              className="shrink-0 rounded-2xl border-slate-200 px-4 text-xs font-bold hover:bg-[#F0F4FF] hover:text-[#2563EB]"
+              className="shrink-0 rounded-2xl border-slate-200 px-4 text-xs font-bold hover:bg-indigo-50 hover:text-brand"
             >
               {loadingPage ? "Fetching..." : "Fetch"}
             </Button>
@@ -402,12 +402,12 @@ return (
         </div>
 
         {/* SCENARIO & EXPAND SECTION SELECTORS */}
-        <div className="space-y-4 rounded-2xl border border-slate-100 bg-[#F0F4FF]/50 p-4">
+        <div className="space-y-4 rounded-2xl border border-slate-100 bg-indigo-50/50 p-4">
           <div className="space-y-3">
             <label className="block text-xs font-bold text-slate-700">
               Scenario for Upload
               <select
-                className={`${fieldClass} mt-2 rounded-2xl border-slate-200 bg-white`}
+                className={`${fieldClass} mt-2 rounded-2xl border-slate-200 bg-card`}
                 value={selectedScenarioId}
                 onChange={(event) => {
                   setSelectedScenarioId(event.target.value);
@@ -426,7 +426,7 @@ return (
               Target Expand Section
               <div className="mt-2 flex items-center gap-2">
                 <select
-                  className={`${fieldClass} mt-0 flex-1 rounded-2xl border-slate-200 bg-white disabled:opacity-50`}
+                  className={`${fieldClass} mt-0 flex-1 rounded-2xl border-slate-200 bg-card disabled:opacity-50`}
                   value={selectedExpandId}
                   disabled={!selectedScenarioId}
                   onChange={(event) => setSelectedExpandId(event.target.value)}
@@ -440,7 +440,7 @@ return (
                 </select>
                 <button
                   type="button"
-                  className="shrink-0 rounded-xl border border-slate-200 bg-white px-3 py-2 text-lg leading-none text-[#2563EB] shadow-sm hover:bg-[#F0F4FF] disabled:opacity-40"
+                  className="shrink-0 rounded-xl border border-slate-200 bg-card px-3 py-2 text-lg leading-none text-brand shadow-sm hover:bg-indigo-50 disabled:opacity-40"
                   disabled={!selectedScenarioId}
                   onClick={() => setSectionEditor({ id: null, title: "" })}
                 >
@@ -448,7 +448,7 @@ return (
                 </button>
                 <button
                   type="button"
-                  className="shrink-0 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-600 shadow-sm hover:bg-slate-50 disabled:opacity-40"
+                  className="shrink-0 rounded-xl border border-slate-200 bg-card px-3 py-2 text-xs font-bold text-slate-600 shadow-sm hover:bg-slate-50 disabled:opacity-40"
                   disabled={!selectedExpandId}
                   onClick={() =>
                     setSectionEditor({
@@ -461,7 +461,7 @@ return (
                 </button>
                 <button
                   type="button"
-                  className="shrink-0 rounded-xl border border-red-100 bg-white px-3 py-2 text-xs font-bold text-red-500 shadow-sm hover:bg-red-50 disabled:opacity-40"
+                  className="shrink-0 rounded-xl border border-red-100 bg-card px-3 py-2 text-xs font-bold text-red-500 shadow-sm hover:bg-red-50 disabled:opacity-40"
                   disabled={!selectedExpandId}
                   onClick={() => {
                     setDeleteId(selectedScenarioId + "::" + selectedExpandId);
@@ -484,12 +484,12 @@ return (
     </section>
 
     {/* RIGHT SIDE: DROPZONE & PREVIEW GALLERY */}
-    <section className="flex min-w-0 flex-col rounded-3xl border border-slate-200/80 bg-white p-6 shadow-sm">
+    <section className="flex min-w-0 flex-col rounded-3xl border border-slate-200/80 bg-card p-6 shadow-sm">
       <div>
-        <span className="text-[10px] font-bold uppercase tracking-wider text-[#2563EB]">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-brand">
           Evidence Upload Zone
         </span>
-        <h2 className="text-xl font-bold text-[#000000]">
+        <h2 className="text-xl font-bold text-ink">
           File Dropzone & Preview
         </h2>
         <p className="mt-0.5 text-xs text-slate-500">
@@ -507,18 +507,18 @@ return (
           );
           setPreviews((current) => [...current, ...files.map(makePreview)]);
         }}
-        className="mt-4 flex min-h-[160px] flex-col items-center justify-center rounded-3xl border-2 border-dashed border-[#6089E4]/40 bg-[#F0F4FF]/30 p-5 text-center transition hover:border-[#2563EB] hover:bg-[#F0F4FF]/60"
+        className="mt-4 flex min-h-[160px] flex-col items-center justify-center rounded-3xl border-2 border-dashed border-brand-soft/40 bg-indigo-50/30 p-5 text-center transition hover:border-brand hover:bg-indigo-50/60"
       >
         <span className="text-3xl">📥</span>
         <p className="mt-2 text-xs font-bold text-slate-700">
           Drag & Drop screenshots or folder here
         </p>
         <p className="mt-0.5 text-[11px] text-slate-400">
-          PNG, JPG, WEBP · or press <kbd className="rounded border bg-white px-1 font-sans">Ctrl+V</kbd> to paste
+          PNG, JPG, WEBP · or press <kbd className="rounded border bg-card px-1 font-sans">Ctrl+V</kbd> to paste
         </p>
 
         <div className="mt-3 flex gap-2">
-          <label className="cursor-pointer rounded-full border border-slate-200 bg-white px-4 py-1.5 text-xs font-bold text-slate-700 shadow-sm hover:bg-slate-50">
+          <label className="cursor-pointer rounded-full border border-slate-200 bg-card px-4 py-1.5 text-xs font-bold text-slate-700 shadow-sm hover:bg-slate-50">
             📁 Choose Folder
             <input
               className="sr-only"
@@ -529,7 +529,7 @@ return (
               onChange={addFiles}
             />
           </label>
-          <label className="cursor-pointer rounded-full bg-[#2563EB] px-4 py-1.5 text-xs font-bold text-white shadow-sm hover:bg-[#1d4ed8]">
+          <label className="cursor-pointer rounded-full bg-brand px-4 py-1.5 text-xs font-bold text-brand-foreground shadow-sm hover:bg-indigo-700">
             🖼️ Choose Images
             <input
               className="sr-only"
@@ -543,10 +543,10 @@ return (
       </div>
 
       {/* PREVIEW CONTAINER */}
-      <div className="mt-5 flex-1 rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+      <div className="mt-5 flex-1 rounded-2xl border border-slate-200/80 bg-card shadow-sm">
         {/* BAR TOP INFO */}
-        <div className="sticky top-0 z-10 flex items-center justify-between rounded-t-2xl border-b border-slate-100 bg-[#F0F4FF] px-4 py-3">
-          <span className="text-xs font-bold text-[#2563EB]">
+        <div className="sticky top-0 z-10 flex items-center justify-between rounded-t-2xl border-b border-slate-100 bg-indigo-50 px-4 py-3">
+          <span className="text-xs font-bold text-brand">
             Preview Queue ({previews.length} files)
           </span>
           <Button
@@ -558,7 +558,7 @@ return (
               !selectedExpandId ||
               uploading
             }
-            className="rounded-full bg-[#2563EB] px-5 text-xs font-bold text-white hover:bg-[#1d4ed8] disabled:opacity-40"
+            className="rounded-full bg-brand px-5 text-xs font-bold text-brand-foreground hover:bg-indigo-700 disabled:opacity-40"
           >
             {uploading ? "Uploading..." : "🚀 Upload Captures"}
           </Button>
@@ -578,7 +578,7 @@ return (
                     if (dragIndex !== null) reorder(dragIndex, index);
                     setDragIndex(null);
                   }}
-                  className="group relative flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-white p-3 shadow-sm transition hover:border-[#6089E4]"
+                  className="group relative flex flex-col justify-between rounded-2xl border border-slate-200/80 bg-card p-3 shadow-sm transition hover:border-brand-soft"
                 >
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-[11px] font-bold text-slate-600">
@@ -597,7 +597,7 @@ return (
                     />
 
                     <textarea
-                      className="h-14 w-full resize-none rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-[#2563EB]"
+                      className="h-14 w-full resize-none rounded-xl border border-slate-200 p-2 text-xs outline-none focus:border-brand"
                       placeholder="Write caption for this screenshot..."
                       value={preview.caption}
                       onChange={(event) =>
@@ -624,7 +624,7 @@ return (
                       </button>
                       <button
                         type="button"
-                        className="rounded-lg border border-blue-100 bg-[#F0F4FF] px-2 py-1 text-[11px] font-bold text-[#2563EB] hover:bg-blue-100"
+                        className="rounded-lg border border-orange-100 bg-indigo-50 px-2 py-1 text-[11px] font-bold text-brand hover:bg-indigo-100"
                         onClick={() => openEditor(preview)}
                       >
                         Edit
@@ -676,7 +676,7 @@ return (
     {/* OVERLAY IMAGE PREVIEW MODAL */}
     {viewPreview && (
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-5 backdrop-blur-sm"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-ink/80 p-5 backdrop-blur-sm"
         onClick={() => setViewPreview(null)}
       >
         <button
@@ -724,7 +724,7 @@ return (
               Cancel
             </Button>
             <Button
-              className="rounded-full bg-[#2563EB] text-white hover:bg-[#1d4ed8]"
+              className="rounded-full bg-brand text-brand-foreground hover:bg-indigo-700"
               onClick={saveSection}
             >
               Save
@@ -777,7 +777,7 @@ return (
           Cancel
         </Button>
         <Button
-          className="rounded-full bg-[#2563EB] text-white hover:bg-[#1d4ed8]"
+          className="rounded-full bg-brand text-brand-foreground hover:bg-indigo-700"
           onClick={() => {
             setConfirmUpload(false);
             void upload();
@@ -792,7 +792,7 @@ return (
       <div className="space-y-4 py-2">
         <div className="h-3 w-full overflow-hidden rounded-full bg-slate-100">
           <div
-            className="h-full rounded-full bg-[#2563EB] transition-all duration-300"
+            className="h-full rounded-full bg-brand transition-all duration-300"
             style={{ width: `${uploadProgress}%` }}
           />
         </div>
@@ -804,7 +804,7 @@ return (
 
     <Dialog open={loadingPage} title="" preventClose>
       <div className="flex flex-col items-center gap-3 py-6 text-center">
-        <div className="h-9 w-9 animate-spin rounded-full border-4 border-slate-200 border-t-[#2563EB]" />
+        <div className="h-9 w-9 animate-spin rounded-full border-4 border-slate-200 border-t-[#FF7A00]" />
         <p className="text-xs font-semibold text-slate-600">
           Fetching Confluence Sections...
         </p>

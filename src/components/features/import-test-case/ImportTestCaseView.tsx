@@ -10,7 +10,7 @@ import { processRow } from "./jiraImport";
 import { getJiraBaseUrl } from "@/lib/auth/session";
 import { emptyRow, valid, type Row, type Step } from "./types";
 
-function LinkCell({ href, label }: { href: string; label: string }) { if (!label) return <span>-</span>; return <a className="text-blue-600 underline" href={href} target="_blank" rel="noreferrer">{label}</a>; }
+function LinkCell({ href, label }: { href: string; label: string }) { if (!label) return <span>-</span>; return <a className="text-brand underline" href={href} target="_blank" rel="noreferrer">{label}</a>; }
 
 export function ImportTestCaseView() {
   const [rows, setRows] = useState<Row[]>([]);
@@ -77,13 +77,13 @@ export function ImportTestCaseView() {
   };
 
 return (
-  <div className="space-y-6 font-['Comic_Sans_MS','Comic_Sans',cursive] text-[#000000]">
+  <div className="space-y-6 font-sans text-ink">
     <Toast message={toast?.message || ""} tone={toast?.tone} />
 
     {/* MAIN CARD WORKSPACE */}
-    <Card className="rounded-3xl border border-slate-200/80 bg-white shadow-sm">
+    <Card className="rounded-3xl border border-slate-200/80 bg-card shadow-sm">
       <CardHeader className="border-b border-slate-100 pb-4">
-        <h2 className="text-lg font-bold text-[#000000]">
+        <h2 className="text-lg font-bold text-ink">
           Import Test Case ke Jira Xray
         </h2>
         <p className="mt-1 text-xs text-slate-500">
@@ -93,21 +93,21 @@ return (
 
       <CardContent className="space-y-6 pt-5">
         {/* TOP ACTION & STATUS BAR */}
-        <div className="flex flex-col gap-3 rounded-2xl border border-slate-100 bg-[#F0F4FF] p-3.5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-3 rounded-2xl border border-slate-100 bg-indigo-50 p-3.5 sm:flex-row sm:items-center sm:justify-between">
           {/* Action Buttons Left */}
           <div className="flex flex-wrap items-center gap-2">
             <Button
               variant="outline"
               onClick={downloadTemplate}
               disabled={running}
-              className="rounded-full border-slate-200 bg-white px-4 text-xs font-semibold hover:bg-slate-50"
+              className="rounded-full border-slate-200 bg-card px-4 text-xs font-semibold hover:bg-slate-50"
             >
               ⬇ Download Template
             </Button>
 
             {mode !== "completed" && (
               <label
-                className={`cursor-pointer rounded-full bg-[#2563EB] px-4 py-2 text-xs font-bold text-white shadow-sm transition hover:bg-[#1d4ed8] ${
+                className={`cursor-pointer rounded-full bg-brand px-4 py-2 text-xs font-bold text-brand-foreground shadow-sm transition hover:bg-indigo-700 ${
                   running ? "pointer-events-none opacity-45" : ""
                 }`}
               >
@@ -131,14 +131,14 @@ return (
                 variant="outline"
                 onClick={() => setAddOpen(true)}
                 disabled={running}
-                className="rounded-full border-[#6089E4] bg-white text-[#2563EB] hover:bg-white/80"
+                className="rounded-full border-brand-soft bg-card text-brand hover:bg-card/80"
               >
                 ＋ Add Scenario
               </Button>
             )}
 
             {template && (
-              <span className="rounded-full bg-white/80 px-3 py-1 text-xs font-bold text-slate-600">
+              <span className="rounded-full bg-card/80 px-3 py-1 text-xs font-bold text-slate-600">
                 📄 {template}
               </span>
             )}
@@ -146,7 +146,7 @@ return (
 
           {/* Status & Submit Right */}
           <div className="flex flex-wrap items-center justify-between gap-3 sm:justify-end">
-            <span className="text-xs font-bold text-[#2563EB]">
+            <span className="text-xs font-bold text-brand">
               {selected.length} / {rows.length} baris dipilih
             </span>
 
@@ -164,7 +164,7 @@ return (
                 <Button
                   onClick={() => setConfirmOpen(true)}
                   disabled={!selected.length || running}
-                  className="rounded-full bg-[#2563EB] px-5 text-xs font-bold text-white shadow-sm hover:bg-[#1d4ed8] disabled:opacity-40"
+                  className="rounded-full bg-brand px-5 text-xs font-bold text-brand-foreground shadow-sm hover:bg-indigo-700 disabled:opacity-40"
                 >
                   Submit Import
                 </Button>
@@ -172,7 +172,7 @@ return (
               {mode === "completed" && (
                 <Button
                   onClick={startImportBaru}
-                  className="rounded-full bg-[#6089E4] px-5 text-xs font-bold text-white hover:bg-[#2563EB]"
+                  className="rounded-full bg-brand-soft px-5 text-xs font-bold text-brand-foreground hover:bg-brand"
                 >
                   ＋ Import Baru
                 </Button>
@@ -185,11 +185,11 @@ return (
         {rows.length > 0 && (
           <div className="space-y-4">
             <div
-              className="max-h-[500px] overflow-auto rounded-2xl border border-slate-200/80 bg-white shadow-sm"
+              className="max-h-[500px] overflow-auto rounded-2xl border border-slate-200/80 bg-card shadow-sm"
               id="import-preview-table"
             >
               <table className="min-w-[1200px] w-full border-collapse text-xs">
-                <thead className="sticky top-0 z-10 bg-[#F0F4FF] shadow-sm">
+                <thead className="sticky top-0 z-10 bg-indigo-50 shadow-sm">
                   <tr className="text-left text-slate-700">
                     <th className="p-3.5 font-bold">Include</th>
                     <th className="p-3.5 font-bold">No</th>
@@ -212,7 +212,7 @@ return (
                         <td className="p-3.5">
                           <input
                             type="checkbox"
-                            className="h-4 w-4 rounded accent-[#2563EB]"
+                            className="h-4 w-4 rounded accent-[#FF7A00]"
                             disabled={running || (mode === "completed" && isSuccess(row))}
                             checked={row.selected}
                             onChange={(event) =>
@@ -226,7 +226,7 @@ return (
                             className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
                               row.reuse
                                 ? "bg-amber-100 text-amber-700"
-                                : "bg-blue-100 text-[#2563EB]"
+                                : "bg-indigo-100 text-brand"
                             }`}
                           >
                             {row.reuse ? "REUSE" : "CREATE NEW"}
@@ -241,7 +241,7 @@ return (
                           />
                         </td>
                         <td className="p-3.5 font-mono text-slate-600">{row.testId}</td>
-                        <td className="max-w-[200px] truncate p-3.5 font-medium text-[#000000]">
+                        <td className="max-w-[200px] truncate p-3.5 font-medium text-ink">
                           {row.summary}
                         </td>
                         <td className="p-3.5 text-slate-600">{row.assignee}</td>
@@ -263,8 +263,8 @@ return (
                         </td>
                         <td className="p-3.5">
                           {row.result === "processing" ? (
-                            <span className="inline-flex items-center gap-1.5 font-bold text-[#2563EB]">
-                              <span className="h-3 w-3 animate-spin rounded-full border-2 border-slate-300 border-t-[#2563EB]" />
+                            <span className="inline-flex items-center gap-1.5 font-bold text-brand">
+                              <span className="h-3 w-3 animate-spin rounded-full border-2 border-slate-300 border-t-[#FF7A00]" />
                               Loading...
                             </span>
                           ) : row.result === "failed" ? (
@@ -321,8 +321,8 @@ return (
                               <button
                                 className={`h-7 rounded-full px-3 text-[10px] font-bold transition ${
                                   expanded === row.no
-                                    ? "bg-[#2563EB] text-white"
-                                    : "border border-slate-200 bg-white text-slate-600 hover:bg-slate-50"
+                                    ? "bg-brand text-brand-foreground"
+                                    : "border border-slate-200 bg-card text-slate-600 hover:bg-slate-50"
                                 }`}
                                 onClick={() =>
                                   setExpanded(expanded === row.no ? null : row.no)
@@ -340,9 +340,9 @@ return (
                         (row.result === "failed" ||
                           row.result === "created" ||
                           row.result === "linked") && (
-                          <tr key={`detail-${row.no}`} className="bg-[#F0F4FF]/50">
+                          <tr key={`detail-${row.no}`} className="bg-indigo-50/50">
                             <td colSpan={12} className="p-4">
-                              <div className="space-y-2 rounded-2xl border border-slate-200/80 bg-white p-4 text-xs shadow-sm">
+                              <div className="space-y-2 rounded-2xl border border-slate-200/80 bg-card p-4 text-xs shadow-sm">
                                 <p>
                                   <strong>Status:</strong>{" "}
                                   <Badge
@@ -386,7 +386,7 @@ return (
                                     <p className="mb-1">
                                       <strong>Payload yang dikirim:</strong>
                                     </p>
-                                    <pre className="max-h-48 overflow-auto whitespace-pre-wrap rounded-xl border border-slate-200 bg-[#F0F4FF] p-3 font-mono text-[11px] text-slate-800">
+                                    <pre className="max-h-48 overflow-auto whitespace-pre-wrap rounded-xl border border-slate-200 bg-indigo-50 p-3 font-mono text-[11px] text-slate-800">
                                       {row.payload}
                                     </pre>
                                   </div>
@@ -423,7 +423,7 @@ return (
           Cancel
         </Button>
         <Button
-          className="rounded-full bg-[#2563EB] text-white hover:bg-[#1d4ed8]"
+          className="rounded-full bg-brand text-brand-foreground hover:bg-indigo-700"
           onClick={() => void execute()}
         >
           Yes
@@ -449,7 +449,7 @@ return (
           Batal
         </Button>
         <Button
-          className="rounded-full bg-[#2563EB] text-white hover:bg-[#1d4ed8]"
+          className="rounded-full bg-brand text-brand-foreground hover:bg-indigo-700"
           onClick={() => resetImport()}
         >
           Lanjutkan

@@ -29,6 +29,8 @@ export default function Login() {
     saveSession({
       pn: "",
       displayName: "",
+      username: "",
+      emailAddress: "",
       jiraPat: jiraToken.trim(),
       confluencePat: confluenceToken.trim(),
       lastValidated: new Date().toISOString(),
@@ -78,35 +80,35 @@ export default function Login() {
   }
 
   return (
-    <main className="min-h-screen w-full bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 flex items-center justify-center p-6">
+    <main className="min-h-screen w-full bg-canvas flex items-center justify-center p-6">
       <div className="w-full max-w-5xl grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
         
         {/* Left Side - Typography Branding */}
-        <div className="space-y-4 text-slate-800 pr-0 md:pr-8">
-          <h1 className="font-serif text-4xl lg:text-5xl font-normal leading-tight tracking-tight">
-            Tempat buat Bikin sama Upload Jira dan Confluence
+        <div className="space-y-4 text-ink pr-0 md:pr-8">
+          <h1 className="font-serif text-4xl lg:text-5xl font-normal leading-tight tracking-tight max-w-[450px]">
+            Tempat buat bikin sama Upload Jira dan Confluence
           </h1>
         </div>
 
         {/* Right Side - Floating Auth Card */}
-        <div className="bg-white/90 backdrop-blur-md p-8 md:p-10 rounded-3xl shadow-xl border border-white/60">
+        <div className="bg-card p-8 md:p-10 rounded-[28px] shadow-panel border border-line">
           <div className="mb-8">
-            <span className="font-serif text-slate-400 text-sm">Get Started</span>
-            <h2 className="font-serif text-2xl text-slate-800 mt-1">Connect your tools</h2>
-            <hr className="mt-4 border-slate-200" />
+            <span className="text-[13px] font-medium text-muted-foreground">Get Started</span>
+            <h2 className="font-serif text-2xl text-ink mt-1">Connect your tools</h2>
+            <hr className="mt-4 border-line" />
           </div>
 
           <form onSubmit={submit} className="space-y-6">
             {/* Jira Field */}
             <div className="space-y-2">
-              <label className="font-serif text-slate-800 text-sm block">Jira</label>
+              <label className="text-[13px] font-medium text-muted-foreground block">Jira</label>
               <div className="relative">
                 <Input
                   type={showJiraToken ? "text" : "password"}
                   value={jiraToken}
                   onChange={(e) => setJiraToken(e.target.value)}
                   placeholder="Personal Access Token"
-                  className="rounded-full py-5 px-5 text-sm bg-white border-slate-300 focus-visible:ring-indigo-400 pr-12 shadow-sm"
+                  className="rounded-full py-5 px-5 text-sm bg-card border-line focus-visible:border-brand focus-visible:ring-brand/25 pr-12"
                 />
                 <button
                   type="button"
@@ -122,14 +124,14 @@ export default function Login() {
 
             {/* Confluence Field */}
             <div className="space-y-2">
-              <label className="font-serif text-slate-800 text-sm block">Confluence</label>
+              <label className="text-[13px] font-medium text-muted-foreground block">Confluence</label>
               <div className="relative">
                 <Input
                   type={showConfluenceToken ? "text" : "password"}
                   value={confluenceToken}
                   onChange={(e) => setConfluenceToken(e.target.value)}
                   placeholder="Personal Access Token"
-                  className="rounded-full py-5 px-5 text-sm bg-white border-slate-300 focus-visible:ring-indigo-400 pr-12 shadow-sm"
+                  className="rounded-full py-5 px-5 text-sm bg-card border-line focus-visible:border-brand focus-visible:ring-brand/25 pr-12"
                 />
                 <button
                   type="button"
@@ -147,7 +149,7 @@ export default function Login() {
                 type="submit"
                 disabled={loading}
                 variant="link"
-                className="font-serif text-xl text-slate-800 hover:text-indigo-600 underline underline-offset-8 transition-colors p-0 h-auto"
+                className="font-serif text-xl text-ink hover:text-brand underline underline-offset-8 transition-colors p-0 h-auto"
               >
                 {loading ? (
                   <span className="flex items-center gap-2">

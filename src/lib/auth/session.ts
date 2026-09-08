@@ -20,6 +20,8 @@ export const CONFLUENCE_CURRENT_USER_ENDPOINT = "/api/confluence-proxy/rest/api/
 export interface AuthSession {
   pn: string; // Contoh: '00123456'
   displayName: string;
+  username: string; // username akun — diisi saat silent validation (Jira/Confluence)
+  emailAddress: string; // email akun — diisi saat silent validation
   jiraPat: string;
   confluencePat: string;
   lastValidated: string; // ISO Date
@@ -63,7 +65,13 @@ export function loadSession(): AuthSession | null {
       typeof parsed.confluencePat === "string" &&
       typeof parsed.lastValidated === "string"
     )
-      return parsed as AuthSession;
+      // username/emailAddress adalah field baru — session lama dimigrasi halus
+      // dengan default kosong agar tidak memaksa logout.
+      return {
+        ...(parsed as AuthSession),
+        username: typeof parsed.username === "string" ? parsed.username : "",
+        emailAddress: typeof parsed.emailAddress === "string" ? parsed.emailAddress : "",
+      };
     return null;
   } catch {
     // SESSION_CORRUPTED — treat as unauthenticated (Step 1 notFound path)。

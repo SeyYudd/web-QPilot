@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { clearSession } from "@/lib/auth/session";
+import { useTheme } from "next-themes";
+import { clearSession, loadSession } from "@/lib/auth/session";
 import {
   FileText,
   RefreshCw,
@@ -9,9 +10,10 @@ import {
   Home,
   Menu,
   X,
-  ChevronRight,
   ArrowUpRight,
   LogOut,
+  Moon,
+  Check,
 } from "lucide-react";
 import { ActionFooter } from "../components/features/check-sync-te/ActionFooter";
 import { CompareController } from "../components/features/check-sync-te/CompareController";
@@ -42,6 +44,90 @@ import JiraTeView from "@/components/features/check-sync-te/JiraTeView";
 
 type NavTab = "home" | "create" | "tmp-iso" | "check-sync-te" | "upload" | "import";
 
+/* Theme Switcher Popover — docs/DESIGN_SYSTEM.md §4.2.
+   Swatch memakai warna tetap sesuai spec (preview tema, bukan UI ter-theme). */
+const THEME_GROUPS = [
+  {
+    label: "Light Mode",
+    options: [
+      { id: "orange-light", label: "Sunset", swatch: "#FF7A00", outline: "#FFFFFF", check: "#0A0A0C" },
+      { id: "blue-light", label: "Ocean", swatch: "#6089E4", outline: "#FFFFFF", check: "#FFFFFF" },
+      { id: "coral-light", label: "Coral", swatch: "#FFB6A6", outline: "#FFFFFF", check: "#0A0A0C" },
+    ],
+  },
+  {
+    label: "Dark Mode",
+    options: [
+      { id: "orange-dark", label: "Sunset", swatch: "#FF7A00", outline: "#0F172A", check: "#0A0A0C" },
+      { id: "blue-dark", label: "Ocean", swatch: "#6089E4", outline: "#0B132B", check: "#FFFFFF" },
+      { id: "coral-dark", label: "Coral", swatch: "#FFB6A6", outline: "#1A1211", check: "#0A0A0C" },
+    ],
+  },
+] as const;
+
+function ThemeSwitcher({ onClose }: { onClose: () => void }) {
+  const { theme, setTheme } = useTheme();
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onPointerDown = (event: MouseEvent) => {
+      if (panelRef.current && !panelRef.current.contains(event.target as Node)) onClose();
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [onClose]);
+
+  return (
+    <div
+      ref={panelRef}
+      className="absolute bottom-full left-0 z-50 mb-2 w-60 rounded-2xl border border-line bg-popover p-4 shadow-panel animate-fadeIn"
+    >
+      <p className="font-serif text-base text-ink">Ganti Tema</p>
+      {THEME_GROUPS.map((group) => (
+        <div key={group.label} className="mt-3">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+            {group.label}
+          </p>
+          <div className="mt-2 flex gap-3">
+            {group.options.map((option) => {
+              const isActive = theme === option.id;
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() => {
+                    setTheme(option.id);
+                    onClose();
+                  }}
+                  className="group flex w-12 flex-col items-center gap-1"
+                  aria-label={`Tema ${option.label} — ${group.label}`}
+                >
+                  <span
+                    className={`flex h-7 w-7 items-center justify-center rounded-full border-2 transition-transform group-hover:scale-110 ${
+                      isActive ? "ring-2 ring-brand ring-offset-2 ring-offset-popover" : ""
+                    }`}
+                    style={{ backgroundColor: option.swatch, borderColor: option.outline }}
+                  >
+                    {isActive && <Check className="h-3.5 w-3.5" style={{ color: option.check }} />}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground">{option.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function Dashboard() {
   if (location.hash === "#image-editor") return <ImageEditorView />;
   return <DashboardContent />;
@@ -51,6 +137,15 @@ function DashboardContent() {
   const navigate = useNavigate();
   const [editedImages, setEditedImages] = useState<Record<string, string>>({});
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [session, setSession] = useState(() => loadSession());
+  const [themeMenuOpen, setThemeMenuOpen] = useState(false);
+
+  // Profil sidebar diperkaya oleh silent validation (validation.ts) — ikuti update-nya.
+  useEffect(() => {
+    const onSessionUpdated = () => setSession(loadSession());
+    window.addEventListener("qpilot-session-updated", onSessionUpdated);
+    return () => window.removeEventListener("qpilot-session-updated", onSessionUpdated);
+  }, []);
 
   useEffect(() => {
     const listener = (event: MessageEvent) => {
@@ -176,7 +271,7 @@ function DashboardContent() {
   const canFix = rows.some((row) => typeof row.order === "number");
 
 const compareView = (
-<div className="space-y-6 font-['Comic_Sans_MS','Comic_Sans',cursive] text-[#000000]">
+<div className="space-y-6 text-ink">
   {/* ROW ATAS: KIRI & KANAN */}
   <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
     {/* KIRI: CONTROLLER */}
@@ -190,17 +285,17 @@ const compareView = (
     />
 
     {/* KANAN: METRICS SUMMARY CARD */}
-    <Card className="rounded-3xl border border-slate-200/80 bg-white shadow-sm">
+    <Card className="rounded-3xl border border-slate-200/80 bg-card shadow-sm">
       <CardHeader className="flex flex-row items-center justify-between border-b border-slate-100 pb-4">
         <div>
-          <h2 className="text-base font-bold text-[#000000]">
+          <h2 className="text-base font-bold text-ink">
             Execution Metrics Overview
           </h2>
           <p className="mt-0.5 text-xs text-slate-500">
             Ringkasan status sinkronisasi Jira Test Execution dan Confluence.
           </p>
         </div>
-        <span className="rounded-full bg-[#F0F4FF] px-3.5 py-1 text-xs font-bold text-[#2563EB]">
+        <span className="rounded-full bg-indigo-50 px-3.5 py-1 text-xs font-bold text-brand">
           {summary.jiraTotal} Jira TC
         </span>
       </CardHeader>
@@ -211,9 +306,9 @@ const compareView = (
   </div>
 
   {/* ROW BAWAH: DATA TABLE FULL WIDTH */}
-  <Card className="rounded-3xl border border-slate-200/80 bg-white shadow-sm">
+  <Card className="rounded-3xl border border-slate-200/80 bg-card shadow-sm">
     <CardHeader className="border-b border-slate-100 pb-4">
-      <h2 className="text-lg font-bold text-[#000000]">
+      <h2 className="text-lg font-bold text-ink">
         Comparison Results Table
       </h2>
       <p className="mt-0.5 text-xs text-slate-500">
@@ -263,7 +358,7 @@ const compareView = (
       <p className="text-xs text-slate-600">
         Perubahan nama/posisi Confluence yang akan diterapkan secara otomatis:
       </p>
-      <div className="max-h-60 overflow-auto rounded-2xl border border-slate-200/80 bg-[#F0F4FF] p-4 text-xs font-medium text-slate-800">
+      <div className="max-h-60 overflow-auto rounded-2xl border border-slate-200/80 bg-indigo-50 p-4 text-xs font-medium text-slate-800">
         <ul className="space-y-2">
           {rows
             .filter((row) => row.status !== "Extra di Confluence")
@@ -272,7 +367,7 @@ const compareView = (
                 key={row.key}
                 className="flex items-center justify-between border-b border-slate-200/60 pb-1.5 last:border-0 last:pb-0"
               >
-                <span className="font-bold text-[#2563EB]">
+                <span className="font-bold text-brand">
                   {index + 1}. {row.key}
                 </span>
                 <span className="text-[11px] text-slate-500">
@@ -292,7 +387,7 @@ const compareView = (
           Cancel
         </Button>
         <Button
-          className="rounded-full bg-[#2563EB] px-5 text-xs font-bold text-white hover:bg-[#1d4ed8]"
+          className="rounded-full bg-brand px-5 text-xs font-bold text-brand-foreground hover:bg-indigo-700"
           onClick={() => {
             setFixPreviewOpen(false);
             void fixPosition(pageId, connection.jiraBase, connection.confBase)
@@ -318,16 +413,16 @@ const compareView = (
       </p>
       <div className="grid grid-cols-2 gap-3">
         <button
-          className="group rounded-2xl border border-slate-200/80 p-4 text-left shadow-sm transition hover:border-[#2563EB] hover:bg-[#F0F4FF]"
+          className="group rounded-2xl border border-slate-200/80 p-4 text-left shadow-sm transition hover:border-brand hover:bg-indigo-50"
           onClick={() => {
             if (addModeRow) void mutateRow(addModeRow, "add", "expand");
             setAddModeRow(null);
           }}
         >
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-100 text-[#2563EB] group-hover:bg-[#2563EB] group-hover:text-white">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-100 text-brand group-hover:bg-brand group-hover:text-brand-foreground">
             ▾
           </div>
-          <strong className="mt-3 block text-xs font-bold text-[#000000]">
+          <strong className="mt-3 block text-xs font-bold text-ink">
             Expand
           </strong>
           <span className="mt-0.5 block text-[10px] text-slate-500">
@@ -336,16 +431,16 @@ const compareView = (
         </button>
 
         <button
-          className="group rounded-2xl border border-slate-200/80 p-4 text-left shadow-sm transition hover:border-[#2563EB] hover:bg-[#F0F4FF]"
+          className="group rounded-2xl border border-slate-200/80 p-4 text-left shadow-sm transition hover:border-brand hover:bg-indigo-50"
           onClick={() => {
             if (addModeRow) void mutateRow(addModeRow, "add", "table");
             setAddModeRow(null);
           }}
         >
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-100 text-[#2563EB] group-hover:bg-[#2563EB] group-hover:text-white">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-indigo-100 text-brand group-hover:bg-brand group-hover:text-brand-foreground">
             ▤
           </div>
-          <strong className="mt-3 block text-xs font-bold text-[#000000]">
+          <strong className="mt-3 block text-xs font-bold text-ink">
             Without Expand
           </strong>
           <span className="mt-0.5 block text-[10px] text-slate-500">
@@ -397,18 +492,25 @@ const compareView = (
       desc: "Overview & Getting Started",
     },
     {
-      id: "create" as NavTab,
-      label: "Create SIT Page",
-      icon: FileText,
-      hash: "create-sit-page",
-      desc: "Create Confluence SIT Document",
-    },
-    {
       id: "tmp-iso" as NavTab,
       label: "Create TMP/ISO",
       icon: FileText,
       hash: "create-tmp-iso",
       desc: "Generate TMP/ISO page tree",
+    },
+    {
+      id: "import" as NavTab,
+      label: "Import Test Case",
+      icon: FileSpreadsheet,
+      hash: "import-test-case",
+      desc: "Bulk test cases import",
+    },
+    {
+      id: "create" as NavTab,
+      label: "Create SIT Page",
+      icon: FileText,
+      hash: "create-sit-page",
+      desc: "Create Confluence SIT Document",
     },
     {
       id: "check-sync-te" as NavTab,
@@ -424,39 +526,26 @@ const compareView = (
       hash: "upload-capture",
       desc: "Organize visual evidence",
     },
-    {
-      id: "import" as NavTab,
-      label: "Import Test Case",
-      icon: FileSpreadsheet,
-      hash: "import-test-case",
-      desc: "Bulk test cases import",
-    },
   ];
 
+  const activeItem = navItems.find((item) => item.id === activeTab) ?? navItems[0];
+  const activeNumber = String(
+    navItems.findIndex((item) => item.id === activeTab) + 1
+  ).padStart(2, "0");
+
   return (
-    <div className="flex min-h-screen bg-[#F0F4FF] font-['Comic_Sans_MS','Comic_Sans',cursive] text-[#000000] antialiased">
-      {/* SIDEBAR DESKTOP */}
-      <aside className="hidden w-64 flex-col border-r border-slate-200/60 bg-[#FFFFFF] lg:flex">
-        <div className="flex h-20 items-center justify-between border-b border-slate-100 px-6">
+    <div className="flex min-h-screen bg-canvas font-sans text-ink antialiased">
+      {/* SIDEBAR DESKTOP (claude.md §5.1) */}
+      <aside className="hidden w-64 flex-col border-r border-line bg-sidebar lg:sticky lg:top-0 lg:h-screen lg:overflow-y-auto lg:flex">
+        <div className="flex h-20 items-center border-b border-line px-6">
           <div>
-            <h1 className="text-sm font-black text-[#000000]">QPilot</h1>
-            <p className="text-[10px] text-slate-500">SIT Generator Workspace</p>
+            <h1 className="font-sans text-lg font-bold tracking-tight text-ink">QPilot</h1>
+            <p className="text-[11px] text-slate-500">SIT Generator Workspace</p>
           </div>
-          <button
-            type="button"
-            onClick={() => {
-              clearSession();
-              navigate("/login", { replace: true });
-            }}
-            className="rounded-lg p-1.5 text-slate-700 hover:bg-slate-100"
-            aria-label="Log out"
-          >
-            <LogOut className="h-4 w-4" />
-          </button>
         </div>
 
-        <nav className="flex-1 space-y-2 p-4">
-          {navItems.map((item) => {
+        <nav className="flex-1 space-y-1.5 p-4">
+          {navItems.map((item, index) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
             return (
@@ -464,34 +553,79 @@ const compareView = (
                 key={item.id}
                 type="button"
                 onClick={() => handleNavClick(item.id, item.hash)}
-                className={`group flex w-full items-center gap-3 rounded-full px-4 py-3 text-left text-xs font-semibold transition-all ${
+                className={`group flex w-full items-center gap-3 rounded-full px-3.5 py-2.5 text-left text-sm transition-all ${
                   isActive
-                    ? "bg-[#6089E4] text-[#FFFFFF] shadow-sm shadow-[#6089E4]/30"
-                    : "text-[#000000] hover:bg-slate-100"
+                    ? "bg-gradient-to-r from-brand to-brand-soft font-medium text-brand-foreground shadow-glow"
+                    : "text-ink hover:bg-slate-50"
                 }`}
               >
+                <span
+                  className={`text-[11px] font-semibold tabular-nums ${
+                    isActive ? "text-brand-foreground/70" : "text-slate-400"
+                  }`}
+                >
+                  {String(index + 1).padStart(2, "0")}
+                </span>
                 <Icon
                   className={`h-4 w-4 ${
-                    isActive ? "text-[#FFFFFF]" : "text-[#000000]"
+                    isActive ? "text-brand-foreground" : "text-slate-500"
                   }`}
                 />
                 <span className="flex-1">{item.label}</span>
-                <ChevronRight
-                  className={`h-3.5 w-3.5 ${
-                    isActive ? "text-[#FFFFFF]" : "text-[#000000]"
-                  }`}
-                />
               </button>
             );
           })}
         </nav>
+
+        {/* FOOTER SIDEBAR: profil, ganti tema, logout */}
+        <div className="border-t border-line p-4">
+          <div className="flex items-center gap-3 px-1 py-1.5">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-brand to-brand-soft text-xs font-bold text-brand-foreground">
+              {(session?.displayName?.trim() || session?.username?.trim() || "QP").slice(0, 2).toUpperCase()}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs font-semibold text-ink">
+                {[session?.username?.trim(), session?.displayName?.trim()].filter(Boolean).join(" | ") ||
+                  "Pengguna QPilot"}
+              </p>
+              <p className="truncate text-[11px] text-slate-500">
+                {session?.emailAddress?.trim() || "SIT Generator Workspace"}
+              </p>
+            </div>
+          </div>
+          <div className="mt-2 flex items-center gap-1 border-t border-slate-100 pt-2">
+            <div className="relative flex-1">
+              <button
+                type="button"
+                onClick={() => setThemeMenuOpen((open) => !open)}
+                aria-expanded={themeMenuOpen}
+                className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-slate-500 transition-colors hover:bg-slate-50 hover:text-ink"
+              >
+                <Moon className="h-4 w-4" />
+                Ganti tema
+              </button>
+              {themeMenuOpen && <ThemeSwitcher onClose={() => setThemeMenuOpen(false)} />}
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                clearSession();
+                navigate("/login", { replace: true });
+              }}
+              className="flex flex-1 items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-slate-500 transition-colors hover:bg-slate-50 hover:text-ink"
+            >
+              <LogOut className="h-4 w-4" />
+              Logout
+            </button>
+          </div>
+        </div>
       </aside>
 
       {/* MOBILE HEADER */}
       <div className="flex flex-1 flex-col min-w-0">
-        <header className="flex h-16 items-center justify-between border-b border-slate-200/80 bg-[#FFFFFF] px-4 lg:hidden">
+        <header className="flex h-16 items-center justify-between border-b border-slate-200/80 bg-card px-4 lg:hidden">
           <div>
-            <h1 className="text-sm font-black text-[#000000]">QPilot</h1>
+            <h1 className="text-sm font-black text-ink">QPilot</h1>
             <p className="text-[10px] text-slate-500">SIT Generator Workspace</p>
           </div>
           <Button
@@ -500,16 +634,16 @@ const compareView = (
             onClick={() => setMobileMenuOpen(true)}
             aria-label="Open Navigation Menu"
           >
-            <Menu className="h-5 w-5 text-[#000000]" />
+            <Menu className="h-5 w-5 text-ink" />
           </Button>
         </header>
 
         {/* MOBILE DRAWER / POPUP MENU */}
         {mobileMenuOpen && (
-          <div className="fixed inset-0 z-50 flex bg-[#000000]/40 backdrop-blur-sm lg:hidden">
-            <div className="w-4/5 max-w-xs flex-col bg-[#FFFFFF] p-5 shadow-2xl flex">
+          <div className="fixed inset-0 z-50 flex bg-black/40 backdrop-blur-sm lg:hidden">
+            <div className="w-4/5 max-w-xs flex-col bg-sidebar p-5 shadow-2xl flex">
               <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                <span className="font-bold text-[#000000] text-sm">Navigation</span>
+                <span className="font-bold text-ink text-sm">Navigation</span>
                 <button
                   type="button"
                   onClick={() => setMobileMenuOpen(false)}
@@ -518,8 +652,8 @@ const compareView = (
                   <X className="h-5 w-5" />
                 </button>
               </div>
-              <nav className="mt-4 flex-1 space-y-2">
-                {navItems.map((item) => {
+              <nav className="mt-4 flex-1 space-y-1.5">
+                {navItems.map((item, index) => {
                   const Icon = item.icon;
                   const isActive = activeTab === item.id;
                   return (
@@ -527,13 +661,20 @@ const compareView = (
                       key={item.id}
                       type="button"
                       onClick={() => handleNavClick(item.id, item.hash)}
-                      className={`flex w-full items-center gap-3 rounded-full px-4 py-3 text-left text-xs font-semibold ${
+                      className={`flex w-full items-center gap-3 rounded-full px-3.5 py-2.5 text-left text-sm ${
                         isActive
-                          ? "bg-[#6089E4] text-[#FFFFFF]"
-                          : "text-[#000000] hover:bg-slate-100"
+                          ? "bg-gradient-to-r from-brand to-brand-soft font-medium text-brand-foreground shadow-glow"
+                          : "text-ink hover:bg-slate-50"
                       }`}
                     >
-                      <Icon className={`h-4 w-4 ${isActive ? "text-[#FFFFFF]" : "text-[#000000]"}`} />
+                      <span
+                        className={`text-[11px] font-semibold tabular-nums ${
+                          isActive ? "text-brand-foreground/70" : "text-slate-400"
+                        }`}
+                      >
+                        {String(index + 1).padStart(2, "0")}
+                      </span>
+                      <Icon className={`h-4 w-4 ${isActive ? "text-brand-foreground" : "text-slate-500"}`} />
                       <span>{item.label}</span>
                     </button>
                   );
@@ -545,16 +686,24 @@ const compareView = (
         )}
 
         {/* MAIN WORKSPACE CONTENT */}
-      <main className="w-full flex-1 max-w-[1400px] mx-auto p-6 md:p-10 font-['Comic_Sans_MS','Comic_Sans',cursive] text-[#000000]">
+      <main className="w-full flex-1 max-w-[1400px] mx-auto p-6 md:p-10 font-sans text-ink">
+        {/* HEADER PAGE SECTION (claude.md §5.2) */}
+        <header className="mb-8 flex items-center gap-5">
+          <span className="text-[32px] font-medium leading-none text-brand">
+            {activeNumber}
+          </span>
+          <div className="h-10 w-px bg-line" />
+          <div>
+            <h1 className="text-[28px] font-semibold leading-tight text-ink">
+              {activeItem.label}
+            </h1>
+            <p className="mt-0.5 font-serif text-sm text-slate-500">{activeItem.desc}</p>
+          </div>
+        </header>
+
         {activeTab === "home" ? (
           /* HOME WORKSPACE (Card Grid Dashboard ala Referensi) */
           <div className="space-y-6">
-            {/* HEADER PAGE */}
-            <div className="flex items-center gap-3">
-              <h1 className="text-xl font-bold text-[#000000]">Home Workspace</h1>
-              <span className="text-slate-300">|</span>
-              <p className="text-xs font-semibold text-slate-500">Overview &amp; Quick Access</p>
-            </div>
 
             {/* GRID CONTAINER */}
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -565,10 +714,10 @@ const compareView = (
 
                   // Palette warna pastel ala gambar referensi
                   const bgVariants = [
-                    { cardBg: "bg-slate-50/60", mediaBg: "bg-[#D8DDF8]" }, // Soft Purple/Blue
-                    { cardBg: "bg-slate-50/60", mediaBg: "bg-[#F3EBB2]" }, // Soft Yellow
-                    { cardBg: "bg-slate-50/60", mediaBg: "bg-[#D9C4EC]" }, // Soft Lilac
-                    { cardBg: "bg-slate-50/60", mediaBg: "bg-[#D0EBC8]" }, // Soft Green
+                    { cardBg: "bg-slate-50/60", mediaBg: "bg-indigo-50" }, // Accent tint 1
+                    { cardBg: "bg-slate-50/60", mediaBg: "bg-indigo-100" }, // Accent tint 2
+                    { cardBg: "bg-slate-50/60", mediaBg: "bg-indigo-200/70" }, // Accent tint 3
+                    { cardBg: "bg-slate-50/60", mediaBg: "bg-indigo-100/60" }, // Accent tint 4
                   ];
                   const colorStyle = bgVariants[index % bgVariants.length];
 
@@ -581,10 +730,10 @@ const compareView = (
                       {/* TOP SECTION: BADGE & ARROW BUTTON */}
                       <div>
                         <div className="flex items-center justify-between">
-                          <h3 className="text-xl font-bold leading-tight text-[#000000]">
+                          <h3 className="text-xl font-bold leading-tight text-ink">
                             {item.label}
                           </h3>
-                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-sm transition-transform duration-200 group-hover:scale-110 group-hover:bg-[#2563EB] group-hover:text-white">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-card shadow-sm transition-transform duration-200 group-hover:scale-110 group-hover:bg-brand group-hover:text-brand-foreground">
                             <ArrowUpRight className="h-4 w-4" />
                           </div>
                         </div>
@@ -600,7 +749,7 @@ const compareView = (
 
                       {/* BOTTOM SECTION: MEDIA / ICON CONTAINER */}
                       <div className={`mt-6 flex h-40 w-full items-center justify-center rounded-[24px] ${colorStyle.mediaBg} transition-transform duration-300 group-hover:scale-[1.02]`}>
-                        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/80 text-[#2563EB] shadow-sm backdrop-blur-sm">
+                        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-card/80 text-brand shadow-sm backdrop-blur-sm">
                           <Icon className="h-8 w-8" />
                         </div>
                       </div>
@@ -617,7 +766,7 @@ const compareView = (
                 onClick={() => setSyncTab("compare")}
                 className={`rounded-xl px-4 py-2 text-xs font-bold transition-all ${
                   syncTab === "compare"
-                    ? "bg-[#2563EB] text-white shadow-sm"
+                    ? "bg-brand text-brand-foreground shadow-sm"
                     : "bg-transparent text-slate-600 hover:text-slate-900"
                 }`}
               >
@@ -627,7 +776,7 @@ const compareView = (
                 onClick={() => setSyncTab("jira")}
                 className={`rounded-xl px-4 py-2 text-xs font-bold transition-all ${
                   syncTab === "jira"
-                    ? "bg-[#2563EB] text-white shadow-sm"
+                    ? "bg-brand text-brand-foreground shadow-sm"
                     : "bg-transparent text-slate-600 hover:text-slate-900"
                 }`}
               >
@@ -662,9 +811,9 @@ const compareView = (
         title={tone === "error" ? "Gagal" : tone === "success" ? "Berhasil" : "Info"}
         onClose={dismissMessage}
       >
-        <p className="text-sm text-[#000000]">{message}</p>
+        <p className="text-sm text-ink">{message}</p>
         <div className="mt-5 flex justify-end">
-          <Button className="bg-[#2563EB] text-[#FFFFFF]" onClick={dismissMessage}>OK</Button>
+          <Button className="bg-brand text-brand-foreground" onClick={dismissMessage}>OK</Button>
         </div>
       </Dialog>
       <LoadingOverlay open={loading || busyAction} />

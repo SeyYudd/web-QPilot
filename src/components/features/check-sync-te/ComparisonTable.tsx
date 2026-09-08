@@ -28,7 +28,7 @@ export function ComparisonTable({
   onRemove: (row: ComparisonResult) => void;
 }) {
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-200/80 bg-white shadow-xs">
+    <div className="overflow-hidden rounded-xl border border-slate-200/80 bg-card shadow-xs">
       <div className="overflow-x-auto">
         <Table className="min-w-[900px]">
           <TableHeader className="bg-slate-50/80">
@@ -65,7 +65,7 @@ export function ComparisonTable({
                   </TableCell>
                   <TableCell className="text-xs text-slate-600">
                     {row.position < 0 ? (
-                      <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-medium text-blue-700 ring-1 ring-blue-700/10 ring-inset">
+                      <span className="inline-flex items-center rounded-md bg-slate-50 px-2 py-0.5 text-[10px] font-medium text-slate-600 ring-1 ring-slate-500/10 ring-inset">
                         empty
                       </span>
                     ) : (
@@ -88,7 +88,7 @@ export function ComparisonTable({
                       {row.status === "Missing di Confluence" && (
                         <button
                           type="button"
-                          className="inline-flex items-center rounded-lg border border-blue-200 bg-blue-50/50 px-2.5 py-1 text-[11px] font-semibold text-blue-600 transition-all hover:bg-blue-600 hover:text-white active:scale-95 cursor-pointer"
+                          className="inline-flex items-center rounded-lg border border-indigo-200 bg-indigo-50/50 px-2.5 py-1 text-[11px] font-semibold text-brand transition-all hover:bg-brand hover:text-brand-foreground active:scale-95 cursor-pointer"
                           onClick={() => onAdd(row)}
                         >
                           Add

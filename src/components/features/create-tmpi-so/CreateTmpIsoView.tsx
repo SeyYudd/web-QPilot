@@ -14,7 +14,7 @@ import { persistFixes, scanPages, type VerifyPage } from "./lib/verify";
 import { TagFixPanel, type PersistUpdate } from "./TagFixPanel";
 
 const fieldClass =
-  "w-full rounded-2xl border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100";
+  "w-full h-11 rounded-xl border border-slate-200 bg-card px-3.5 text-sm text-slate-700 shadow-sm outline-none transition placeholder:text-slate-400 hover:border-slate-300 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-50";
 
 const getTodayDateString = () => {
   const today = new Date();
@@ -138,27 +138,27 @@ function ResultScreen({
   const failedCount = results.filter((r) => r.status !== "success").length;
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
+    <div className="mx-auto w-full max-w-6xl space-y-7">
       {/* HEADER & ACTION TOP BAR */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-5 border-b border-slate-200/80 pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center rounded-md bg-indigo-50 px-2 py-0.5 text-[11px] font-semibold text-indigo-600 ring-1 ring-inset ring-indigo-500/10 uppercase tracking-wider">
+            <span className="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-indigo-700 ring-1 ring-inset ring-indigo-100">
               Execution Report
             </span>
             <span className="text-xs text-slate-400">• Total {results.length} Halaman</span>
           </div>
-          <h1 className="mt-1 font-serif text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
+          <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
             Hasil Generate TMP/ISO
           </h1>
-          <p className="mt-0.5 text-xs text-slate-500">
+          <p className="mt-1.5 max-w-2xl text-sm leading-6 text-slate-500">
             Ringkasan eksekusi pembuatan struktur dokumen Confluence & Jira.
           </p>
         </div>
 
         <Button
           type="button"
-          className="self-start sm:self-auto rounded-xl bg-slate-900 px-5 py-2.5 text-xs font-semibold text-white shadow-md shadow-slate-900/10 hover:bg-slate-800 transition-all flex items-center gap-2"
+          className="self-start rounded-xl bg-ink px-4 py-2.5 text-sm font-semibold text-canvas shadow-sm transition hover:bg-slate-800 sm:self-auto flex items-center gap-2"
           onClick={onNew}
         >
           <span>+</span> Generate New TMP/ISO
@@ -168,19 +168,19 @@ function ResultScreen({
       {/* METRICS & DONUT SUMMARY CARD */}
       <div className="grid gap-4 sm:grid-cols-12">
         {/* DONUT CHART CONTAINER */}
-        <div className="sm:col-span-5 rounded-3xl border border-indigo-100/60 bg-white p-6 shadow-xl shadow-indigo-100/30 flex flex-col items-center justify-center relative overflow-hidden">
-          <span className="absolute top-4 left-4 text-[11px] font-medium text-slate-400 uppercase tracking-wider">
+        <div className="relative flex min-h-[260px] flex-col items-center justify-center overflow-hidden rounded-2xl border border-slate-200 bg-card p-6 shadow-sm sm:col-span-5">
+          <span className="absolute left-5 top-5 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">
             Success Ratio
           </span>
-          <div className="my-2 flex items-center justify-center">
+          <div className="mt-4 flex items-center justify-center">
             <Donut successPct={successPct} />
           </div>
         </div>
 
         {/* KPI CARDS (SUCCESS vs FAILED) */}
-        <div className="sm:col-span-7 grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 gap-4 sm:col-span-7">
           {/* SUCCESS STAT CARD */}
-          <div className="rounded-3xl border border-emerald-100 bg-emerald-50/40 p-5 shadow-sm flex flex-col justify-between">
+          <div className="flex min-h-[260px] flex-col justify-between rounded-2xl border border-emerald-100 bg-emerald-50/40 p-5 shadow-sm">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-emerald-800 uppercase tracking-wider">
                 Berhasil
@@ -196,7 +196,7 @@ function ResultScreen({
           </div>
 
           {/* FAILED STAT CARD */}
-          <div className="rounded-3xl border border-rose-100 bg-rose-50/40 p-5 shadow-sm flex flex-col justify-between">
+          <div className="flex min-h-[260px] flex-col justify-between rounded-2xl border border-rose-100 bg-rose-50/40 p-5 shadow-sm">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold text-rose-800 uppercase tracking-wider">
                 Gagal
@@ -214,8 +214,8 @@ function ResultScreen({
       </div>
 
       {/* PER-PAGE RESULT TABLE */}
-      <div className="rounded-3xl border border-indigo-100/60 bg-white shadow-xl shadow-indigo-100/30 overflow-hidden">
-        <div className="border-b border-slate-100 bg-slate-50/50 px-6 py-4 flex items-center justify-between">
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-card shadow-sm">
+        <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50/70 px-5 py-4">
           <div>
             <h2 className="text-sm font-semibold text-slate-800">Detail Hasil Pembuatan Halaman</h2>
             <p className="text-[11px] text-slate-400">Daftar status per-node/halaman yang baru diproses.</p>
@@ -225,9 +225,9 @@ function ResultScreen({
           </span>
         </div>
 
-        <div className="max-h-96 overflow-y-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="sticky top-0 bg-slate-50/90 backdrop-blur-md text-[10px] font-semibold uppercase tracking-wider text-slate-400 border-b border-slate-100">
+        <div className="max-h-[30rem] overflow-auto">
+          <table className="w-full min-w-[680px] text-left text-sm">
+            <thead className="sticky top-0 z-10 border-b border-slate-200 bg-slate-50 px-5 text-[10px] font-bold uppercase tracking-[0.12em] text-slate-500">
               <tr>
                 <th className="px-6 py-3">Status</th>
                 <th className="px-4 py-3">Action / Phase</th>
@@ -237,21 +237,21 @@ function ResultScreen({
             </thead>
             <tbody className="divide-y divide-slate-100/80">
               {results.map((r, index) => (
-                <tr key={`${r.phase}-${r.pageId || index}`} className="hover:bg-slate-50/60 transition-colors align-top">
+                <tr key={`${r.phase}-${r.pageId || index}`} className="align-top transition-colors hover:bg-slate-50">
                   {/* STATUS */}
-                  <td className="px-6 py-3.5 whitespace-nowrap">
-                    <span className={`font-mono text-xs font-bold ${STATUS_COLOR[r.status] || "text-slate-600"}`}>
+                  <td className="px-5 py-3.5 whitespace-nowrap">
+                    <span className={`inline-flex rounded-full bg-slate-100 px-2 py-1 font-mono text-[10px] font-bold uppercase tracking-wide ${STATUS_COLOR[r.status] || "text-slate-600"}`}>
                       {r.status}
                     </span>
                   </td>
 
                   {/* ACTION / PHASE */}
-                  <td className="px-4 py-3.5 font-medium text-slate-500 whitespace-nowrap">
+                  <td className="px-5 py-3.5 font-medium text-slate-500 whitespace-nowrap">
                     {r.phase}
                   </td>
 
                   {/* TITLE & ERROR */}
-                  <td className="px-4 py-3.5">
+                  <td className="px-5 py-3.5">
                     <span className="font-semibold text-slate-800 block">{r.title}</span>
                     {r.error && (
                       <span className="mt-1 block break-all text-[11px] text-rose-600 bg-rose-50 rounded-lg p-2 border border-rose-100">
@@ -261,7 +261,7 @@ function ResultScreen({
                   </td>
 
                   {/* CONFLUENCE LINK */}
-                  <td className="px-6 py-3.5 text-right whitespace-nowrap">
+                  <td className="px-5 py-3.5 text-right whitespace-nowrap">
                     {r.pageId && confBase ? (
                       <a
                         className="inline-flex items-center gap-1 font-mono text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:underline bg-indigo-50/50 hover:bg-indigo-50 px-2.5 py-1 rounded-lg transition-all"
@@ -283,20 +283,20 @@ function ResultScreen({
       </div>
 
       {/* VERIFIKASI TOKEN PANEL */}
-      <div className="rounded-3xl border border-indigo-100/60 bg-white p-6 shadow-xl shadow-indigo-100/30">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
+      <div className="rounded-2xl border border-slate-200 bg-card p-5 shadow-sm">
+        <div className="flex flex-col justify-between gap-4 border-b border-slate-200 pb-4 sm:flex-row sm:items-center">
           <div>
             <h3 className="text-sm font-semibold text-slate-800 flex items-center gap-2">
               <span>🔍</span> Verifikasi Token Belum Terisi
             </h3>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="mt-1 text-sm text-slate-500">
               Scan ulang halaman hasil generate untuk menemukan <code className="text-indigo-600 font-semibold">{"{{...}}"}</code> yang belum terisi.
             </p>
           </div>
           <Button
             type="button"
             variant="outline"
-            className="rounded-xl border-slate-200 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition-all self-start sm:self-auto"
+            className="self-start rounded-xl border-slate-200 px-4 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 sm:self-auto"
             onClick={onCheckAgain}
             disabled={verifying}
           >
@@ -469,19 +469,19 @@ export default function CreateTmpIsoView() {
 
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8">
+    <div className="mx-auto w-full max-w-5xl space-y-7">
       {/* HEADER SECTION */}
-      <div className="text-center sm:text-left">
-        <h1 className="font-serif text-2xl font-semibold tracking-tight text-slate-900 sm:text-3xl">
+      <div className="border-b border-slate-200/80 pb-6 text-left">
+        <h1 className="text-2xl font-bold tracking-tight text-slate-950 sm:text-3xl">
           Generate TMP/ISO Project
         </h1>
-        <p className="mt-1.5 text-xs font-normal text-slate-500 sm:text-sm">
+        <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
           Lengkapi informasi project untuk menghasilkan dokumentasi Confluence & Jira secara terstruktur.
         </p>
       </div>
 
       {/* STEP NAVIGATION WIZARD */}
-      <div className="grid grid-cols-3 gap-2 rounded-2xl bg-slate-100/80 p-1.5 backdrop-blur-md border border-slate-200/60 shadow-inner">
+      <div className="grid grid-cols-3 gap-1 rounded-2xl border border-slate-200 bg-slate-100 p-1 shadow-inner">
         {STEPS.map((step: any) => {
           const isActive = currentStep === step.id;
           const isCompleted = currentStep > step.id;
@@ -491,12 +491,12 @@ export default function CreateTmpIsoView() {
               key={step.id}
               type="button"
               onClick={() => setCurrentStep(step.id)}
-              className={`flex flex-col items-center justify-center rounded-xl py-2.5 px-2 text-center transition-all duration-200 ${
+              className={`flex min-h-[62px] flex-col items-center justify-center rounded-xl px-2 py-2.5 text-center transition-all duration-200 ${
                 isActive
-                  ? "bg-white text-indigo-950 shadow-md shadow-slate-200/50 font-semibold ring-1 ring-black/5"
+                  ? "bg-card text-indigo-950 shadow-sm ring-1 ring-slate-200 font-semibold"
                   : isCompleted
-                  ? "text-indigo-600 hover:bg-white/50"
-                  : "text-slate-400 hover:text-slate-700 hover:bg-white/30"
+                  ? "text-indigo-700 hover:bg-card/70"
+                  : "text-slate-400 hover:bg-card/60 hover:text-slate-700"
               }`}
             >
               <span className="text-[10px] font-bold tracking-wider uppercase opacity-75">
@@ -527,70 +527,70 @@ export default function CreateTmpIsoView() {
       )}
 
       {/* MAIN ELEGANT CARD CONTAINER */}
-      <div className="rounded-3xl border border-indigo-100/60 bg-white p-6 shadow-xl shadow-indigo-100/30 sm:p-8 transition-all">
+      <div className="rounded-2xl border border-slate-200 bg-card p-6 shadow-sm sm:p-8">
         {/* STEP 1: GENERAL INFO */}
         {currentStep === 1 && (
-          <div className="space-y-6 animate-fadeIn">
-            <div className="border-b border-slate-100 pb-4">
-              <h2 className="font-serif text-xl font-medium text-slate-900">General Information</h2>
-              <p className="text-xs text-slate-400 mt-0.5">Identitas project dan lokasi tujuan di Confluence.</p>
+          <div className="space-y-7">
+            <div className="border-b border-slate-200 pb-4">
+              <h2 className="text-lg font-bold text-slate-950">General Information</h2>
+              <p className="mt-1 text-sm text-slate-500">Identitas project dan lokasi tujuan di Confluence.</p>
             </div>
 
-            <div className="grid gap-5 sm:grid-cols-2">
+            <div className="grid gap-x-5 gap-y-5 sm:grid-cols-2">
               <div>
-                <label className="block text-xs font-semibold text-slate-700">ID Project / Key <span className="text-rose-500">*</span></label>
+                <label className="block text-sm font-semibold text-slate-700">ID Project / Key <span className="text-rose-500">*</span></label>
                 <input className={`${fieldClass} mt-1.5`} placeholder="e.g. PROJ-123" value={form.idProject} onChange={(e) => handleIdProjectChange(e.target.value)} />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-700">Project Name <span className="text-rose-500">*</span></label>
+                <label className="block text-sm font-semibold text-slate-700">Project Name <span className="text-rose-500">*</span></label>
                 <input className={`${fieldClass} mt-1.5`} placeholder="Masukkan Nama Project" value={form.projectName} onChange={(e) => setField("projectName", e.target.value)} />
               </div>
             </div>
 
-            <div className="grid gap-5 sm:grid-cols-2">
+            <div className="grid gap-x-5 gap-y-5 sm:grid-cols-2">
               <div>
-                <label className="block text-xs font-semibold text-slate-700">Target Space Key <span className="text-rose-500">*</span></label>
+                <label className="block text-sm font-semibold text-slate-700">Target Space Key <span className="text-rose-500">*</span></label>
                 <input className={`${fieldClass} mt-1.5`} placeholder="e.g. SIM" value={form.targetSpaceKey} onChange={(e) => setField("targetSpaceKey", e.target.value)} />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-700">Target Parent Page ID <span className="text-rose-500">*</span></label>
+                <label className="block text-sm font-semibold text-slate-700">Target Parent Page ID <span className="text-rose-500">*</span></label>
                 <input className={`${fieldClass} mt-1.5`} placeholder="Contoh: 12345678" value={form.targetParentPageId} onChange={(e) => setField("targetParentPageId", e.target.value)} />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700">Onboarding Date <span className="text-rose-500">*</span></label>
+              <label className="block text-sm font-semibold text-slate-700">Onboarding Date <span className="text-rose-500">*</span></label>
               <input className={`${fieldClass} mt-1.5`} value={form.onboardingDate} onChange={(e) => setField("onboardingDate", e.target.value)} />
             </div>
 
-            <div className="grid gap-5 sm:grid-cols-2">
+            <div className="grid gap-x-5 gap-y-5 sm:grid-cols-2">
               <div>
-                <label className="block text-xs font-semibold text-slate-700">Nama Fungsi <span className="text-slate-400 font-normal">(Opsional)</span></label>
-                <input className={`${fieldClass} mt-1.5`} placeholder="Isi {{nama_fungsi}}" value={form.namaFungsi} onChange={(e) => setField("namaFungsi", e.target.value)} />
+                <label className="block text-sm font-semibold text-slate-700">Nama Fungsi <span className="text-slate-400 font-normal">(Opsional)</span></label>
+                <input className={`${fieldClass} mt-1.5`} placeholder="Ex: QCP" value={form.namaFungsi} onChange={(e) => setField("namaFungsi", e.target.value)} />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-700">Nama Proyek <span className="text-slate-400 font-normal">(Opsional)</span></label>
-                <input className={`${fieldClass} mt-1.5`} placeholder="Isi {{nama_proyek}}" value={form.namaProyek} onChange={(e) => setField("namaProyek", e.target.value)} />
+                <label className="block text-sm font-semibold text-slate-700">Nama Proyek <span className="text-slate-400 font-normal">(Opsional)</span></label>
+                <input className={`${fieldClass} mt-1.5`} placeholder="Ex: Proyek ABC" value={form.namaProyek} onChange={(e) => setField("namaProyek", e.target.value)} />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-700">Nama Aplikasi <span className="text-slate-400 font-normal">(Opsional)</span></label>
-                <input className={`${fieldClass} mt-1.5`} placeholder="Isi {{nama_aplikasi}}" value={form.namaAplikasi} onChange={(e) => setField("namaAplikasi", e.target.value)} />
+                <label className="block text-sm font-semibold text-slate-700">Nama Aplikasi <span className="text-slate-400 font-normal">(Opsional)</span></label>
+                <input className={`${fieldClass} mt-1.5`} placeholder="Ex: Aplikasi XYZ" value={form.namaAplikasi} onChange={(e) => setField("namaAplikasi", e.target.value)} />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-700">Nama Modul <span className="text-slate-400 font-normal">(Opsional)</span></label>
-                <input className={`${fieldClass} mt-1.5`} placeholder="Isi {{nama_modul}}" value={form.namaModul} onChange={(e) => setField("namaModul", e.target.value)} />
+                <label className="block text-sm font-semibold text-slate-700">Nama Modul <span className="text-slate-400 font-normal">(Opsional)</span></label>
+                <input className={`${fieldClass} mt-1.5`} placeholder="Ex: Modul PQR" value={form.namaModul} onChange={(e) => setField("namaModul", e.target.value)} />
               </div>
             </div>
 
             {/* TEMPLATE SAMPLE CONTAINER */}
             <div>
-              <label className="block text-xs font-semibold text-slate-700">Template Root Page ID</label>
-              <div className="mt-1.5 flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/70 px-4 py-2.5">
+              <label className="block text-sm font-semibold text-slate-700">Template Root Page ID</label>
+              <div className="mt-2 flex min-h-11 items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5">
                 <a href={templateConfluenceUrl} target="_blank" rel="noreferrer" className="text-xs font-semibold text-indigo-600 hover:text-indigo-800 hover:underline truncate max-w-[240px] flex items-center gap-1" title="Klik untuk membuka sampel di Confluence">
                   <span>Sample Root ({form.templateRootPageId})</span>
                   <span>↗</span>
                 </a>
-                <button type="button" onClick={() => { setTempTemplateId(form.templateRootPageId); setEditTemplateOpen(true); }} className="text-[11px] font-semibold text-slate-600 hover:text-indigo-600 hover:underline">
+                <button type="button" onClick={() => { setTempTemplateId(form.templateRootPageId); setEditTemplateOpen(true); }} className="shrink-0 text-xs font-semibold text-indigo-600 hover:text-indigo-700 hover:underline">
                   Edit Sample
                 </button>
               </div>
@@ -600,53 +600,53 @@ export default function CreateTmpIsoView() {
 
         {/* STEP 2: CONFLUENCE ARTIFACTS */}
         {currentStep === 2 && (
-          <div className="space-y-6 animate-fadeIn">
-            <div className="border-b border-slate-100 pb-4">
-              <h2 className="font-serif text-xl font-medium text-slate-900">Confluence Artifacts</h2>
-              <p className="text-xs text-slate-400 mt-0.5">Dokumentasi BRD, System Design, serta lampiran pendukung.</p>
+          <div className="space-y-7">
+            <div className="border-b border-slate-200 pb-4">
+              <h2 className="text-lg font-bold text-slate-950">Confluence Artifacts</h2>
+              <p className="mt-1 text-sm text-slate-500">Dokumentasi BRD, System Design, serta lampiran pendukung.</p>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div>
-                <label className="block text-xs font-semibold text-slate-700">Link BRD <span className="text-rose-500">*</span></label>
+                <label className="block text-sm font-semibold text-slate-700">Link BRD <span className="text-rose-500">*</span></label>
                 <input className={`${fieldClass} mt-1.5`} placeholder="https://confluence.bri.co.id/..." value={form.linkBrd} onChange={(e) => setField("linkBrd", e.target.value)} />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-700">Link System Design (Dev) <span className="text-rose-500">*</span></label>
+                <label className="block text-sm font-semibold text-slate-700">Link System Design (Dev) <span className="text-rose-500">*</span></label>
                 <input className={`${fieldClass} mt-1.5`} placeholder="https://confluence.bri.co.id/..." value={form.linkSystemDesignDev} onChange={(e) => setField("linkSystemDesignDev", e.target.value)} />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700">Link MIG Dev <span className="text-slate-400 font-normal">(Opsional)</span></label>
+                <label className="block text-sm font-semibold text-slate-700">Link MIG Dev <span className="text-slate-400 font-normal">(Opsional)</span></label>
                 <input className={`${fieldClass} mt-1.5`} placeholder="https://confluence.bri.co.id/..." value={form.linkMigDev} onChange={(e) => setField("linkMigDev", e.target.value)} />
               </div>
 
-              <div className="grid gap-5 sm:grid-cols-2">
+              <div className="grid gap-x-5 gap-y-5 sm:grid-cols-2">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700">Link SOP Deployment <span className="text-slate-400 font-normal">(Opsional)</span></label>
+                  <label className="block text-sm font-semibold text-slate-700">Link SOP Deployment <span className="text-slate-400 font-normal">(Opsional)</span></label>
                   <input className={`${fieldClass} mt-1.5`} placeholder="https://confluence.bri.co.id/..." value={form.linkSopDeployment} onChange={(e) => setField("linkSopDeployment", e.target.value)} />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700">Link SOP Maintenance <span className="text-slate-400 font-normal">(Opsional)</span></label>
+                  <label className="block text-sm font-semibold text-slate-700">Link SOP Maintenance <span className="text-slate-400 font-normal">(Opsional)</span></label>
                   <input className={`${fieldClass} mt-1.5`} placeholder="https://confluence.bri.co.id/..." value={form.linkSopMaintenance} onChange={(e) => setField("linkSopMaintenance", e.target.value)} />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700">Link SOP Monitoring <span className="text-slate-400 font-normal">(Opsional)</span></label>
+                  <label className="block text-sm font-semibold text-slate-700">Link SOP Monitoring <span className="text-slate-400 font-normal">(Opsional)</span></label>
                   <input className={`${fieldClass} mt-1.5`} placeholder="https://confluence.bri.co.id/..." value={form.linkSopMonitoring} onChange={(e) => setField("linkSopMonitoring", e.target.value)} />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700">Link SOP Troubleshooting <span className="text-slate-400 font-normal">(Opsional)</span></label>
+                  <label className="block text-sm font-semibold text-slate-700">Link SOP Troubleshooting <span className="text-slate-400 font-normal">(Opsional)</span></label>
                   <input className={`${fieldClass} mt-1.5`} placeholder="https://confluence.bri.co.id/..." value={form.linkSopTroubleshooting} onChange={(e) => setField("linkSopTroubleshooting", e.target.value)} />
                 </div>
               </div>
 
-              <div className="grid gap-5 sm:grid-cols-2">
+              <div className="grid gap-x-5 gap-y-5 sm:grid-cols-2">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700">Link NCM <span className="text-slate-400 font-normal">(Opsional)</span></label>
+                  <label className="block text-sm font-semibold text-slate-700">Link NCM <span className="text-slate-400 font-normal">(Opsional)</span></label>
                   <input className={`${fieldClass} mt-1.5`} placeholder="https://..." value={form.linkNcm} onChange={(e) => setField("linkNcm", e.target.value)} />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700">Link Confluence DAST <span className="text-slate-400 font-normal">(Opsional)</span></label>
+                  <label className="block text-sm font-semibold text-slate-700">Link Confluence DAST <span className="text-slate-400 font-normal">(Opsional)</span></label>
                   <input className={`${fieldClass} mt-1.5`} placeholder="https://..." value={form.linkConfluenceDast} onChange={(e) => setField("linkConfluenceDast", e.target.value)} />
                 </div>
               </div>
@@ -656,41 +656,41 @@ export default function CreateTmpIsoView() {
 
         {/* STEP 3: JIRA INTEGRATION */}
         {currentStep === 3 && (
-          <div className="space-y-6 animate-fadeIn">
-            <div className="border-b border-slate-100 pb-4">
-              <h2 className="font-serif text-xl font-medium text-slate-900">Jira Integration</h2>
-              <p className="text-xs text-slate-400 mt-0.5">Tautan board testing, eksekusi, serta pelacakan defect.</p>
+          <div className="space-y-7">
+            <div className="border-b border-slate-200 pb-4">
+              <h2 className="text-lg font-bold text-slate-950">Jira Integration</h2>
+              <p className="mt-1 text-sm text-slate-500">Tautan board testing, eksekusi, serta pelacakan defect.</p>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-5">
               <div>
-                <label className="block text-xs font-semibold text-slate-700">Link Jira Project <span className="text-rose-500">*</span></label>
+                <label className="block text-sm font-semibold text-slate-700">Link Jira Project <span className="text-rose-500">*</span></label>
                 <input className={`${fieldClass} mt-1.5`} placeholder="https://jira.bri.co.id/browse/PROJ" value={form.linkJiraProject} onChange={(e) => setField("linkJiraProject", e.target.value)} />
               </div>
 
-              <div className="grid gap-5 sm:grid-cols-2">
+              <div className="grid gap-x-5 gap-y-5 sm:grid-cols-2">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700">Link Jira SIT (TE) <span className="text-rose-500">*</span></label>
+                  <label className="block text-sm font-semibold text-slate-700">Link Jira SIT (TE) <span className="text-rose-500">*</span></label>
                   <input className={`${fieldClass} mt-1.5`} placeholder="https://jira.bri.co.id/..." value={form.linkJiraSitTe} onChange={(e) => setField("linkJiraSitTe", e.target.value)} />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700">Link Jira UAT (TE) <span className="text-rose-500">*</span></label>
+                  <label className="block text-sm font-semibold text-slate-700">Link Jira UAT (TE) <span className="text-rose-500">*</span></label>
                   <input className={`${fieldClass} mt-1.5`} placeholder="https://jira.bri.co.id/..." value={form.linkJiraUatTe} onChange={(e) => setField("linkJiraUatTe", e.target.value)} />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700">Link Jira UQA <span className="text-rose-500">*</span></label>
+                <label className="block text-sm font-semibold text-slate-700">Link Jira UQA <span className="text-rose-500">*</span></label>
                 <input className={`${fieldClass} mt-1.5`} placeholder="https://jira.bri.co.id/..." value={form.linkJiraUqa} onChange={(e) => setField("linkJiraUqa", e.target.value)} />
               </div>
 
-              <div className="grid gap-5 sm:grid-cols-2">
+              <div className="grid gap-x-5 gap-y-5 sm:grid-cols-2">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700">Link Jira DAST <span className="text-slate-400 font-normal">(Opsional)</span></label>
+                  <label className="block text-sm font-semibold text-slate-700">Link Jira DAST <span className="text-slate-400 font-normal">(Opsional)</span></label>
                   <input className={`${fieldClass} mt-1.5`} placeholder="https://..." value={form.linkJiraDast} onChange={(e) => setField("linkJiraDast", e.target.value)} />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700">Link Jira Bug <span className="text-slate-400 font-normal">(Opsional)</span></label>
+                  <label className="block text-sm font-semibold text-slate-700">Link Jira Bug <span className="text-slate-400 font-normal">(Opsional)</span></label>
                   <input className={`${fieldClass} mt-1.5`} placeholder="https://..." value={form.linkJiraBug} onChange={(e) => setField("linkJiraBug", e.target.value)} />
                 </div>
               </div>
@@ -699,11 +699,11 @@ export default function CreateTmpIsoView() {
         )}
 
         {/* BOTTOM NAVIGATION BUTTONS */}
-        <div className="mt-8 flex items-center justify-between border-t border-slate-100 pt-6">
+        <div className="mt-8 flex items-center justify-between border-t border-slate-200 pt-6">
           <Button
             type="button"
             variant="outline"
-            className="rounded-xl border-slate-200 px-5 text-xs font-semibold text-slate-600 hover:bg-slate-50 transition-all"
+            className="rounded-xl border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600 shadow-sm hover:bg-slate-50"
             onClick={() => setCurrentStep((prev: number) => Math.max(prev - 1, 1))}
             disabled={currentStep === 1 || running}
           >
@@ -714,7 +714,7 @@ export default function CreateTmpIsoView() {
             {currentStep < 3 ? (
               <Button
                 type="button"
-                className="rounded-xl bg-indigo-600 px-6 py-2.5 text-xs font-semibold text-white shadow-md shadow-indigo-100 hover:bg-indigo-700 transition-all"
+                className="rounded-xl bg-indigo-600 px-5 py-2.5 text-sm font-semibold text-brand-foreground shadow-sm hover:bg-indigo-700"
                 onClick={() => setCurrentStep((prev: number) => Math.min(prev + 1, 3))}
               >
                 Next Step →
@@ -722,7 +722,7 @@ export default function CreateTmpIsoView() {
             ) : (
               <Button
                 type="button"
-                className="rounded-xl bg-slate-900 px-6 py-2.5 text-xs font-semibold text-white shadow-lg shadow-slate-900/10 hover:bg-slate-800 transition-all"
+                className="rounded-xl bg-ink px-5 py-2.5 text-sm font-semibold text-canvas shadow-sm hover:bg-slate-800"
                 onClick={() => void handleAttemptGenerate()}
                 disabled={running}
               >
@@ -735,8 +735,8 @@ export default function CreateTmpIsoView() {
 
       {/* INLINE PER-PAGE RESULT (JIKA SUDAH ADA RESULTS) */}
       {results && results.length > 0 && (
-        <div className="rounded-3xl border border-indigo-100/60 bg-white p-5 shadow-xl shadow-indigo-100/30">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
+        <div className="rounded-2xl border border-slate-200 bg-card p-5 shadow-sm">
+          <div className="mb-3 flex items-center justify-between border-b border-slate-200 pb-3">
             <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Per-Page Execution Status</p>
             <span className="text-[11px] font-mono text-slate-400">{results.length} Pages</span>
           </div>
@@ -744,7 +744,7 @@ export default function CreateTmpIsoView() {
             {results.map((r: any) => (
               <li key={`${r.phase}-${r.pageId || r.key}`} className="flex flex-wrap items-center justify-between gap-2 py-2 text-xs">
                 <div className="flex items-center gap-2">
-<span className={`font-mono text-[11px] font-bold ${STATUS_COLOR[r.status as PageResultStatus] ?? "text-slate-600"}`}>
+<span className={`inline-flex rounded-full bg-slate-100 px-2 py-1 font-mono text-[10px] font-bold uppercase tracking-wide ${STATUS_COLOR[r.status as PageResultStatus] ?? "text-slate-600"}`}>
   {r.status}
 </span>                  <span className="text-slate-400">•</span>
                   <span className="text-slate-500 font-medium">{r.phase}</span>
@@ -766,7 +766,7 @@ export default function CreateTmpIsoView() {
 
       {/* ERROR MODAL */}
       <Dialog open={errorModalOpen} title="Field Wajib Belum Lengkap" onClose={() => setErrorModalOpen(false)}>
-        <div className="space-y-4">
+        <div className="space-y-5">
           <p className="text-xs text-slate-600">
             Harap lengkapi beberapa informasi mandatori berikut sebelum dapat melakukan generate space tree:
           </p>
@@ -783,7 +783,7 @@ export default function CreateTmpIsoView() {
             </ul>
           </div>
           <div className="flex justify-end pt-2">
-            <Button className="rounded-xl bg-rose-600 text-xs font-semibold text-white hover:bg-rose-700" onClick={() => setErrorModalOpen(false)}>
+            <Button className="rounded-xl bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-rose-700" onClick={() => setErrorModalOpen(false)}>
               Paham, Lengkapi Data
             </Button>
           </div>
@@ -792,7 +792,7 @@ export default function CreateTmpIsoView() {
 
       {/* CONFIRM DIALOG */}
       <Dialog open={confirmOpen} title="Yakin mau create?" onClose={() => setConfirmOpen(false)}>
-        <div className="space-y-4">
+        <div className="space-y-5">
           <div className="rounded-2xl bg-slate-50 p-4 space-y-1.5 text-xs text-slate-600 border border-slate-100">
             <p><strong>Project:</strong> {form.projectName || "-"} ({form.idProject || "-"})</p>
             <p><strong>Target Space:</strong> {form.targetSpaceKey.toUpperCase() || "-"}</p>
@@ -803,7 +803,7 @@ export default function CreateTmpIsoView() {
             Sistem akan membuat struktur halaman dokumentasi baru di Confluence secara otomatis.
           </p>
 
-          <div className="max-h-40 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-3.5 text-[11px] text-slate-600">
+          <div className="max-h-40 overflow-y-auto rounded-2xl border border-slate-200 bg-card p-3.5 text-[11px] text-slate-600">
             <span className="font-semibold block mb-1.5 text-slate-800">Daftar Halaman yang Akan Dibuat:</span>
             <ul className="space-y-1">
               {tree.map((item: any) => (
@@ -825,7 +825,7 @@ export default function CreateTmpIsoView() {
             <Button type="button" variant="outline" className="rounded-xl text-xs font-semibold border-slate-200 text-slate-600 hover:bg-slate-50" onClick={() => setConfirmOpen(false)}>
               Cancel
             </Button>
-            <Button type="button" className="rounded-xl bg-indigo-600 text-xs font-semibold text-white hover:bg-indigo-700 shadow-md shadow-indigo-100" onClick={() => void runGenerate()}>
+            <Button type="button" className="rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-brand-foreground shadow-sm hover:bg-indigo-700" onClick={() => void runGenerate()}>
               Yes, Generate Tree
             </Button>
           </div>
@@ -834,19 +834,19 @@ export default function CreateTmpIsoView() {
 
       {/* MODAL EDIT TEMPLATE ROOT */}
       <Dialog open={editTemplateOpen} title="Edit Sample Root Page ID" onClose={() => setEditTemplateOpen(false)}>
-        <div className="space-y-4">
+        <div className="space-y-5">
           <p className="text-xs text-slate-600">
             Ubah Root Page ID bawaan agar sesuai dengan struktur template Confluence divisi kamu.
           </p>
           <div>
-            <label className="block text-xs font-semibold text-slate-700">Template Root Page ID</label>
+            <label className="block text-sm font-semibold text-slate-700">Template Root Page ID</label>
             <input className={`${fieldClass} mt-1.5 rounded-xl`} value={tempTemplateId} onChange={(e) => setTempTemplateId(e.target.value)} placeholder="Contoh: 2096826162" />
           </div>
           <div className="flex justify-end gap-2 border-t border-slate-100 pt-3">
             <Button variant="outline" className="rounded-xl text-xs font-semibold" onClick={() => setEditTemplateOpen(false)}>
               Cancel
             </Button>
-            <Button className="rounded-xl bg-slate-900 text-xs font-semibold text-white hover:bg-slate-800" onClick={handleSaveTemplateId}>
+            <Button className="rounded-xl bg-ink px-4 py-2.5 text-sm font-semibold text-canvas shadow-sm hover:bg-slate-800" onClick={handleSaveTemplateId}>
               Save Sample ID
             </Button>
           </div>

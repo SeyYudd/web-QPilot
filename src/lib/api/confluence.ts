@@ -10,8 +10,8 @@ import {
 } from "../auth/session";
 import type { AuthSession } from "../auth/session";
 
-/** Validasi PAT Confluence (Step 2): GET /rest/api/user/current → username (PN). */
-export async function fetchConfluenceCurrentUser(session: AuthSession): Promise<{ pn: string }> {
+/** Validasi PAT Confluence (Step 2): GET /rest/api/user/current → username (PN) + profil akun. */
+export async function fetchConfluenceCurrentUser(session: AuthSession): Promise<{ pn: string; username: string; displayName: string; emailAddress: string }> {
   const response = await apiFetch(
     CONFLUENCE_CURRENT_USER_ENDPOINT,
     { method: "GET" },
@@ -22,10 +22,20 @@ export async function fetchConfluenceCurrentUser(session: AuthSession): Promise<
     throw new AuthError("TOKEN_EXPIRED", "Session habis, silakan masukkan PAT baru.");
   }
   if (!response.ok) throw new Error(`HTTP ${response.status} pada validasi Confluence`);
-  const body = (await response.json()) as { username?: unknown };
+  const body = (await response.json().catch(() => ({}))) as {
+    username?: unknown;
+    displayName?: unknown;
+    email?: unknown;
+    emailAddress?: unknown;
+  };
   const pn = String(body.username || "").trim();
   if (!pn) throw new Error("PN Confluence tidak ditemukan pada response current user.");
-  return { pn };
+  return {
+    pn,
+    username: pn,
+    displayName: String(body.displayName || "").trim(),
+    emailAddress: String(body.email || body.emailAddress || "").trim(),
+  };
 }
 
 /**

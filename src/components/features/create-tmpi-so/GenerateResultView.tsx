@@ -110,7 +110,7 @@ export default function GenerateResultView({
 
           <Button
             type="button"
-            className="self-start sm:self-auto rounded-xl bg-slate-900 px-5 py-2.5 text-xs font-semibold text-white shadow-md shadow-slate-900/10 hover:bg-slate-800 transition-all flex items-center gap-2"
+            className="self-start sm:self-auto rounded-xl bg-ink px-5 py-2.5 text-xs font-semibold text-canvas shadow-md shadow-slate-900/10 hover:bg-slate-800 transition-all flex items-center gap-2"
             onClick={onNew}
           >
             <span>+</span> Generate New TMP/ISO
@@ -120,7 +120,7 @@ export default function GenerateResultView({
         {/* METRICS & DONUT SUMMARY CARD */}
         <div className="grid gap-4 sm:grid-cols-12">
           {/* DONUT CHART CONTAINER */}
-          <div className="sm:col-span-5 rounded-3xl border border-indigo-100/60 bg-white p-6 shadow-xl shadow-indigo-100/30 flex flex-col items-center justify-center relative overflow-hidden">
+          <div className="sm:col-span-5 rounded-3xl border border-indigo-100/60 bg-card p-6 shadow-xl shadow-indigo-100/30 flex flex-col items-center justify-center relative overflow-hidden">
             <span className="absolute top-4 left-4 text-[11px] font-medium text-slate-400 uppercase tracking-wider">
               Success Ratio
             </span>
@@ -181,7 +181,7 @@ export default function GenerateResultView({
         </div>
 
         {/* PER-PAGE RESULT TABLE */}
-        <div className="rounded-3xl border border-indigo-100/60 bg-white shadow-xl shadow-indigo-100/30 overflow-hidden">
+        <div className="rounded-3xl border border-indigo-100/60 bg-card shadow-xl shadow-indigo-100/30 overflow-hidden">
           <div className="border-b border-slate-100 bg-slate-50/50 px-6 py-4 flex items-center justify-between">
             <div>
               <h2 className="text-sm font-semibold text-slate-800">
@@ -274,7 +274,7 @@ export default function GenerateResultView({
         </div>
 
         {/* VERIFIKASI PANEL CARD */}
-        <div className="rounded-3xl border border-indigo-100/60 bg-white p-6 shadow-xl shadow-indigo-100/30">
+        <div className="rounded-3xl border border-indigo-100/60 bg-card p-6 shadow-xl shadow-indigo-100/30">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
             <div>
               <h3 className="text-sm font-semibold text-slate-800 flex items-center gap-2">

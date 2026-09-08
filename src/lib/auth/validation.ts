@@ -4,7 +4,7 @@
 
 import {
   loadSession,
-  touchLastValidated,
+  saveSession,
   clearSession,
   isAuthErrorKind,
 } from "./session";
@@ -45,7 +45,18 @@ export async function validateSession(session: AuthSession): Promise<ValidationO
   // Keduanya valid → cek kecocokan PN.
   if (jiraPn && confPn) {
     if (jiraPn === confPn) {
-      touchLastValidated(session);
+      // Perkaya session dengan profil akun (username | displayName + emailAddress)
+      // untuk detail profil di footer sidebar, lalu beri tahu UI agar ikut ter-update.
+      const jiraUser = jiraRes.status === "fulfilled" ? jiraRes.value : null;
+      const confUser = confRes.status === "fulfilled" ? confRes.value : null;
+      saveSession({
+        ...session,
+        username: jiraUser?.username || confUser?.username || "",
+        displayName: jiraUser?.displayName || confUser?.displayName || "",
+        emailAddress: jiraUser?.emailAddress || confUser?.emailAddress || "",
+        lastValidated: new Date().toISOString(),
+      });
+      window.dispatchEvent(new Event("qpilot-session-updated"));
       return { outcome: "authenticated", jiraPn, confluencePn: confPn };
     }
     return { outcome: "pnMismatch", jiraPn, confluencePn: confPn };

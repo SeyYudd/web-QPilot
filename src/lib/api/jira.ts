@@ -77,18 +77,23 @@ async function assertOk(response: Response, url: string): Promise<void> {
   throw new Error(`HTTP ${response.status}${detail ? `: ${detail}` : ""}`, { cause: url });
 }
 
-/** Validasi PAT Jira (Step 2)and: GET /rest/api/2/myself → PN Jira. */
-export async function fetchJiraCurrentUser(session: AuthSession): Promise<{ pn: string }> {
+/** Validasi PAT Jira (Step 2)and: GET /rest/api/2/myself → PN + profil akun. */
+export async function fetchJiraCurrentUser(session: AuthSession): Promise<{ pn: string; username: string; displayName: string; emailAddress: string }> {
   const response = await apiFetch(JIRA_MYSELF_ENDPOINT, { method: "GET" }, session.jiraPat);
   if (response.status === 401) {
     clearSession();
     throw new AuthError("TOKEN_EXPIRED", "Session habis, silakan masukkan PAT baru.");
   }
   if (!response.ok) throw new Error(`HTTP ${response.status} pada validasi Jira`);
-  const body = await parseBody<{ name?: unknown; key?: unknown }>(response);
+  const body = await parseBody<{ name?: unknown; key?: unknown; displayName?: unknown; emailAddress?: unknown }>(response);
   const pn = String(body.name || body.key || "").trim();
   if (!pn) throw new Error("PN Jira tidak ditemukan pada response myself.");
-  return { pn };
+  return {
+    pn,
+    username: pn,
+    displayName: String(body.displayName || "").trim(),
+    emailAddress: String(body.emailAddress || "").trim(),
+  };
 }
 
 /**

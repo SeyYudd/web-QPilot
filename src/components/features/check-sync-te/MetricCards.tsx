@@ -6,7 +6,7 @@ export function MetricCards({ summary }: { summary: CompareSummary }) {
     { label: "Jira TC", value: summary.jiraTotal, tone: "text-slate-700" },
     { label: "Match", value: summary.match, tone: "text-emerald-600" },
     { label: "Urutan berbeda", value: summary.differentOrder, tone: "text-amber-600" },
-    { label: "Missing di Confluence", value: summary.missing, tone: "text-blue-600" },
+    { label: "Missing di Confluence", value: summary.missing, tone: "text-brand" },
     { label: "Extra di Confluence", value: summary.extra, tone: "text-red-600" },
     { label: "Has capture", value: summary.captured, tone: "text-slate-700" },
   ];

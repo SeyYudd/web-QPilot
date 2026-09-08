@@ -1,9 +1,5 @@
 @import "tailwindcss";
+/* Global design tokens (colors, fonts, radius, shadow-panel, animate-fadeIn)
+   live in ../assets/styles/globals.css — imported below and via main.tsx. */
 @import "../assets/styles/globals.css";
 
-@theme {
-  --color-brand: #2563eb;
-  --color-ink: #17253a;
-  --color-muted: #718096;
-  --color-line: #dce6f0;
-}

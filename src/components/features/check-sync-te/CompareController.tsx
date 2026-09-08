@@ -17,10 +17,10 @@ export function CompareController({
   loading: boolean;
 }) {
   return (
-    <Card className="rounded-3xl border border-slate-200/80 bg-white shadow-sm">
+    <Card className="rounded-3xl border border-slate-200/80 bg-card shadow-sm">
       <CardContent className="space-y-4 p-6">
         <div>
-          <p className="text-[10px] font-black uppercase tracking-[.18em] text-[#2563EB]">
+          <p className="text-[10px] font-black uppercase tracking-[.18em] text-brand">
             Check &amp; Sync TE
           </p>
           <h2 className="mt-1 text-base font-black text-slate-800">
@@ -31,7 +31,7 @@ export function CompareController({
         <label className="block text-xs font-bold text-slate-600">
           Confluence Page ID
           <input
-            className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 bg-card px-3 text-sm text-slate-700 outline-none transition focus:border-brand focus:ring-2 focus:ring-indigo-100"
             value={pageId}
             onChange={(event) => setPageId(event.target.value)}
             placeholder="6597588"
@@ -41,7 +41,7 @@ export function CompareController({
         <label className="block text-xs font-bold text-slate-600">
           Jira Test Execution Key
           <input
-            className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm uppercase text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+            className="mt-1.5 h-10 w-full rounded-xl border border-slate-200 bg-card px-3 text-sm uppercase text-slate-700 outline-none transition focus:border-brand focus:ring-2 focus:ring-indigo-100"
             value={executionKey}
             onChange={(event) => setExecutionKey(event.target.value.toUpperCase())}
             placeholder="OCOCWRAOUF-152"
@@ -49,7 +49,7 @@ export function CompareController({
         </label>
 
         <Button 
-          className="w-full rounded-xl bg-[#2563EB] py-2.5 font-bold text-white hover:bg-[#1d4ed8] cursor-pointer"
+          className="w-full rounded-xl bg-brand py-2.5 font-bold text-brand-foreground hover:bg-indigo-700 cursor-pointer"
           onClick={onCompare} 
           disabled={loading}
         >

@@ -1,7 +1,7 @@
 import { authorizedFetch } from "@/lib/auth/session";
 
 export const fieldClass =
-  "mt-2 h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100";
+  "mt-2 h-10 w-full rounded-2xl border border-line bg-card px-4 text-sm text-ink outline-none transition focus:border-brand focus:ring-2 focus:ring-brand/10";
 
 export type StepRow = { action: string; data: string; expectedResult: string };
 export type TestCase = {

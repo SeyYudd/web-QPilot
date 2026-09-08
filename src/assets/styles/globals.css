@@ -1,21 +1,72 @@
+@import "@fontsource-variable/inter";
+@import "@fontsource/playfair-display/400.css";
+@import "@fontsource/playfair-display/500.css";
+@import "@fontsource/playfair-display/600.css";
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
 
-@custom-variant dark (&:is(.dark *));
+/* Multi-theme engine: docs/DESIGN_SYSTEM.md §2 — 3 aksen × light/dark via
+   <html data-theme="..."> (next-themes, persisted ke localStorage).
+   Nilai @theme di bawah = default orange-light; blok :root[data-theme]
+   meng-override saat runtime sehingga utility berbasis var(--color-*)
+   ikut berganti instan. */
+@custom-variant dark (&:is([data-theme*="dark"] *));
+
+@theme {
+  /* QPilot palette — orange-light defaults (docs/DESIGN_SYSTEM.md §2.1.1) */
+  --color-canvas: #F8F9FE;           /* surface-background */
+  --color-sidebar: #FFFFFF;          /* surface-sidebar */
+  --color-brand: #FF7A00;            /* primary accent start */
+  --color-brand-soft: #FF9E66;       /* primary accent end (gradient) */
+  --color-brand-foreground: #0A0A0C; /* teks/ikon di atas brand (kontras AA) */
+  --color-line: #E2E8F0;             /* border-subtle */
+  --color-ink: #0A0A0C;              /* text-main */
+
+  /* Soft neutral floating card shadow (tanpa bayangan hitam pekat) */
+  --shadow-panel: 0px 20px 40px -15px rgba(10, 10, 12, 0.06);
+
+  /* Soft glow mengikuti brand tema aktif (pill nav aktif) */
+  --shadow-glow: 0 8px 20px -8px color-mix(in srgb, var(--color-brand) 55%, transparent);
+
+  /* Subtle, short entrance animation */
+  --animate-fadeIn: fadeIn 0.3s ease-out both;
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  /* indigo-* ramp = accent ramp tema aktif (default: orange-light) */
+  --color-indigo-50: #FFF4EA;
+  --color-indigo-100: #FFE9D6;
+  --color-indigo-200: #FFD9BF;
+  --color-indigo-300: #FFC29C;
+  --color-indigo-400: #FF9E66;
+  --color-indigo-500: #FF8A40;
+  --color-indigo-600: #FF7A00;
+  --color-indigo-700: #E86C00;
+  --color-indigo-800: #C25400;
+  --color-indigo-900: #9C4300;
+  --color-indigo-950: #6B2E00;
+
+  /* slate-* netral light default (tema dark meng-override di bawah) */
+  --color-slate-50: #F8FAFC;
+  --color-slate-100: #F1F5F9;
+  --color-slate-200: #E2E8F0;
+  --color-slate-300: #CBD5E1;
+  --color-slate-400: #94A3B8;
+  --color-slate-500: #64748B;
+  --color-slate-600: #475569;
+  --color-slate-700: #334155;
+  --color-slate-800: #1E293B;
+  --color-slate-900: #0F172A;
+  --color-slate-950: #020617;
+}
 
 @theme inline {
-    --font-heading: var(--font-sans);
-    --font-sans: 'Geist Variable', sans-serif;
-    --color-sidebar-ring: var(--sidebar-ring);
-    --color-sidebar-border: var(--sidebar-border);
-    --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-    --color-sidebar-accent: var(--sidebar-accent);
-    --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-    --color-sidebar-primary: var(--sidebar-primary);
-    --color-sidebar-foreground: var(--sidebar-foreground);
-    --color-sidebar: var(--sidebar);
+    --font-heading: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    --font-sans: 'Plus Jakarta Sans', 'Inter', sans-serif;
+    --font-serif: 'Playfair Display', Georgia, serif;
     --color-chart-5: var(--chart-5);
     --color-chart-4: var(--chart-4);
     --color-chart-3: var(--chart-3);
@@ -39,82 +90,197 @@
     --color-card: var(--card);
     --color-foreground: var(--foreground);
     --color-background: var(--background);
-    --radius-sm: calc(var(--radius) * 0.6);
-    --radius-md: calc(var(--radius) * 0.8);
-    --radius-lg: var(--radius);
-    --radius-xl: calc(var(--radius) * 1.4);
-    --radius-2xl: calc(var(--radius) * 1.8);
-    --radius-3xl: calc(var(--radius) * 2.2);
-    --radius-4xl: calc(var(--radius) * 2.6);
+    --radius-sm: 0.5rem;
+    --radius-md: 0.75rem;
+    --radius-lg: 1rem;
+    --radius-xl: 0.75rem;
+    --radius-2xl: 1.5rem;
+    --radius-3xl: 1.75rem;
+    --radius-4xl: 2rem;
 }
 
+/* QPilot semantic palette — shadcn vars mengikuti token tema aktif (§5 Do's:
+   gunakan var(--color-*) agar transisi tema instan). */
 :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.145 0 0);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.145 0 0);
-    --primary: oklch(0.205 0 0);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.97 0 0);
-    --secondary-foreground: oklch(0.205 0 0);
-    --muted: oklch(0.97 0 0);
-    --muted-foreground: oklch(0.556 0 0);
-    --accent: oklch(0.97 0 0);
-    --accent-foreground: oklch(0.205 0 0);
+    --background: var(--color-canvas);
+    --foreground: var(--color-ink);
+    --card: var(--color-sidebar);
+    --card-foreground: var(--color-ink);
+    --popover: var(--color-sidebar);
+    --popover-foreground: var(--color-ink);
+    --primary: var(--color-brand);
+    --primary-foreground: var(--color-brand-foreground);
+    --secondary: var(--color-indigo-50);
+    --secondary-foreground: var(--color-indigo-700);
+    --muted: var(--color-indigo-50);
+    --muted-foreground: #64748B; /* dioverride per data-theme (nilai --color-muted spec) */
+    --accent: var(--color-indigo-50);
+    --accent-foreground: var(--color-ink);
     --destructive: oklch(0.577 0.245 27.325);
-    --border: oklch(0.922 0 0);
-    --input: oklch(0.922 0 0);
-    --ring: oklch(0.708 0 0);
+    --border: var(--color-line);
+    --input: var(--color-line);
+    --ring: var(--color-brand);
     --chart-1: oklch(0.87 0 0);
     --chart-2: oklch(0.556 0 0);
     --chart-3: oklch(0.439 0 0);
     --chart-4: oklch(0.371 0 0);
     --chart-5: oklch(0.269 0 0);
     --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.145 0 0);
-    --sidebar-primary: oklch(0.205 0 0);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.97 0 0);
-    --sidebar-accent-foreground: oklch(0.205 0 0);
-    --sidebar-border: oklch(0.922 0 0);
-    --sidebar-ring: oklch(0.708 0 0);
 }
 
-.dark {
-    --background: oklch(0.145 0 0);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.205 0 0);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.205 0 0);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.922 0 0);
-    --primary-foreground: oklch(0.205 0 0);
-    --secondary: oklch(0.269 0 0);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.269 0 0);
-    --muted-foreground: oklch(0.708 0 0);
-    --accent: oklch(0.269 0 0);
-    --accent-foreground: oklch(0.985 0 0);
-    --destructive: oklch(0.704 0.191 22.216);
-    --border: oklch(1 0 0 / 10%);
-    --input: oklch(1 0 0 / 15%);
-    --ring: oklch(0.556 0 0);
-    --chart-1: oklch(0.87 0 0);
-    --chart-2: oklch(0.556 0 0);
-    --chart-3: oklch(0.439 0 0);
-    --chart-4: oklch(0.371 0 0);
-    --chart-5: oklch(0.269 0 0);
-    --sidebar: oklch(0.205 0 0);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.269 0 0);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(1 0 0 / 10%);
-    --sidebar-ring: oklch(0.556 0 0);
+/* ===== Theme blocks — docs/DESIGN_SYSTEM.md §2.1 (nilai persis dari spec) ===== */
+
+/* 2.1.1 Sunset Orange (default) */
+:root[data-theme="orange-light"] {
+  --color-canvas: #F8F9FE;
+  --color-sidebar: #FFFFFF;
+  --color-brand: #FF7A00;
+  --color-brand-soft: #FF9E66;
+  --color-brand-foreground: #0A0A0C;
+  --color-line: #E2E8F0;
+  --color-ink: #0A0A0C;
+  --muted-foreground: #64748B;
+  --color-indigo-50: #FFF4EA;
+  --color-indigo-100: #FFE9D6;
+  --color-indigo-200: #FFD9BF;
+  --color-indigo-300: #FFC29C;
+  --color-indigo-400: #FF9E66;
+  --color-indigo-500: #FF8A40;
+  --color-indigo-600: #FF7A00;
+  --color-indigo-700: #E86C00;
+  --color-indigo-800: #C25400;
+  --color-indigo-900: #9C4300;
+  --color-indigo-950: #6B2E00;
+}
+
+:root[data-theme="orange-dark"] {
+  --color-canvas: #0F172A;
+  --color-sidebar: #1E293B;
+  --color-brand: #FF7A00;
+  --color-brand-soft: #FF9E66;
+  --color-brand-foreground: #0F172A;
+  --color-line: #334155;
+  --color-ink: #F8FAFC;
+  --muted-foreground: #94A3B8;
+  --color-indigo-50: #2A1A0E;
+  --color-indigo-100: #3D2210;
+  --color-indigo-200: #5C3214;
+  --color-indigo-300: #8F4911;
+  --color-indigo-400: #FF9E66;
+  --color-indigo-500: #FF8A40;
+  --color-indigo-600: #FF7A00;
+  --color-indigo-700: #FF9333;
+  --color-indigo-800: #FFB366;
+  --color-indigo-900: #FFD4A8;
+  --color-indigo-950: #FFE4C2;
+}
+
+/* 2.1.2 Ocean Blue */
+:root[data-theme="blue-light"] {
+  --color-canvas: #F4F7FF;
+  --color-sidebar: #FFFFFF;
+  --color-brand: #6089E4;
+  --color-brand-soft: #8FAEFF;
+  --color-brand-foreground: #0A0A0C;
+  --color-line: #E2E8F0;
+  --color-ink: #0A0A0C;
+  --muted-foreground: #64748B;
+  --color-indigo-50: #EFF4FE;
+  --color-indigo-100: #DBE5FE;
+  --color-indigo-200: #BFD3FE;
+  --color-indigo-300: #9BBBFB;
+  --color-indigo-400: #8FAEFF;
+  --color-indigo-500: #6D98F4;
+  --color-indigo-600: #6089E4;
+  --color-indigo-700: #4B6EC5;
+  --color-indigo-800: #38539A;
+  --color-indigo-900: #293B6E;
+  --color-indigo-950: #1D2A4E;
+}
+
+:root[data-theme="blue-dark"] {
+  --color-canvas: #0B132B;
+  --color-sidebar: #1C2541;
+  --color-brand: #6089E4;
+  --color-brand-soft: #8FAEFF;
+  --color-brand-foreground: #0B132B;
+  --color-line: #2A385B;
+  --color-ink: #F8FAFC;
+  --muted-foreground: #8D99AE;
+  --color-indigo-50: #101B3B;
+  --color-indigo-100: #182854;
+  --color-indigo-200: #233975;
+  --color-indigo-300: #3350A0;
+  --color-indigo-400: #8FAEFF;
+  --color-indigo-500: #6D98F4;
+  --color-indigo-600: #6089E4;
+  --color-indigo-700: #7DA2FF;
+  --color-indigo-800: #9EBDFF;
+  --color-indigo-900: #C7DAFF;
+  --color-indigo-950: #E0EBFF;
+}
+
+/* 2.1.3 Soft Coral */
+:root[data-theme="coral-light"] {
+  --color-canvas: #FFF9F8;
+  --color-sidebar: #FFFFFF;
+  --color-brand: #FFB6A6;
+  --color-brand-soft: #FFD4CB;
+  --color-brand-foreground: #0A0A0C;
+  --color-line: #E2E8F0;
+  --color-ink: #0A0A0C;
+  --muted-foreground: #64748B;
+  --color-indigo-50: #FFF5F3;
+  --color-indigo-100: #FFEAE6;
+  --color-indigo-200: #FFD4CB;
+  --color-indigo-300: #FFC0B3;
+  --color-indigo-400: #FFB6A6;
+  --color-indigo-500: #FA9F8E;
+  --color-indigo-600: #E88876;
+  --color-indigo-700: #C26453;
+  --color-indigo-800: #9C4536;
+  --color-indigo-900: #782C1E;
+  --color-indigo-950: #5C1F13;
+}
+
+:root[data-theme="coral-dark"] {
+  --color-canvas: #1A1211;
+  --color-sidebar: #2A1D1B;
+  --color-brand: #FFB6A6;
+  --color-brand-soft: #FFD4CB;
+  --color-brand-foreground: #1A1211;
+  --color-line: #3D2B28;
+  --color-ink: #FAF0EE;
+  --muted-foreground: #A8928E;
+  --color-indigo-50: #2B1815;
+  --color-indigo-100: #42211C;
+  --color-indigo-200: #633028;
+  --color-indigo-300: #8A4338;
+  --color-indigo-400: #FFB6A6;
+  --color-indigo-500: #FFC2B5;
+  --color-indigo-600: #FFD1C7;
+  --color-indigo-700: #FFE0D9;
+  --color-indigo-800: #FFECE8;
+  --color-indigo-900: #FFF7F5;
+  --color-indigo-950: #FFFBFA;
+}
+
+/* slate-* gelap untuk dark mode (kode existing memakai slate-* secara luas;
+   urutan dibalik agar teks sekunder tetap terang & kontras di kanvas gelap) */
+:root[data-theme="orange-dark"],
+:root[data-theme="blue-dark"],
+:root[data-theme="coral-dark"] {
+  --color-slate-50: #1B2536;
+  --color-slate-100: #253248;
+  --color-slate-200: #334155;
+  --color-slate-300: #46586F;
+  --color-slate-400: #94A3B8;
+  --color-slate-500: #A5B3C9;
+  --color-slate-600: #BCC7D9;
+  --color-slate-700: #D2DAE6;
+  --color-slate-800: #E2E8F0;
+  --color-slate-900: #F1F5F9;
+  --color-slate-950: #F8FAFC;
 }
 
 @layer base {

@@ -7,7 +7,7 @@ import { persistFixes, scanTreeFromRoot, type VerifyPage } from "../create-tmpi-
 import { TagFixPanel, type PersistUpdate } from "../create-tmpi-so/TagFixPanel";
 
 const fieldClass =
-  "mt-1.5 h-10 w-full rounded-2xl border border-slate-200 bg-white px-3.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none transition-all duration-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 hover:border-slate-300";
+  "mt-1.5 h-10 w-full rounded-2xl border border-slate-200 bg-card px-3.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none transition-all duration-200 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 hover:border-slate-300";
 
 export default function VerifyTmpIsoView() {
   const [rootPageId, setRootPageId] = useState("");
@@ -57,10 +57,10 @@ export default function VerifyTmpIsoView() {
       </div>
 
       {/* MAIN CONTAINER */}
-      <Card className="rounded-3xl border border-indigo-100/60 bg-white shadow-xl shadow-indigo-100/30 overflow-hidden transition-all">
+      <Card className="rounded-3xl border border-indigo-100/60 bg-card shadow-xl shadow-indigo-100/30 overflow-hidden transition-all">
         <CardHeader className="border-b border-slate-100/80 bg-slate-50/50 p-6 sm:p-8">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-600 text-white shadow-md shadow-indigo-100">
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-indigo-600 text-brand-foreground shadow-md shadow-indigo-100">
               🔍
             </div>
             <div>
@@ -87,7 +87,7 @@ export default function VerifyTmpIsoView() {
             </div>
             <Button
               type="button"
-              className="h-10 rounded-xl bg-indigo-600 px-6 text-xs font-semibold text-white shadow-md shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-[0.98] disabled:opacity-70"
+              className="h-10 rounded-xl bg-indigo-600 px-6 text-xs font-semibold text-brand-foreground shadow-md shadow-indigo-100 hover:bg-indigo-700 transition-all active:scale-[0.98] disabled:opacity-70"
               onClick={() => void runScan()}
               disabled={scanning}
             >
